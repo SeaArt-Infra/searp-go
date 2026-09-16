@@ -36,8 +36,14 @@ func main() {
 		log.Fatal(err)
 	}
 
-	session, err := client.Sessions.CreateExperience(context.Background(), rp.JSONMap{
+	ctx := context.Background()
+	session, err := client.Sessions.Create(ctx, rp.JSONMap{
 		"user_id": "visitor-1",
+		"request": rp.JSONMap{
+			"character": rp.JSONMap{"name": "Ada", "gender": 2},
+			"style":     1,
+			"lang":      "en",
+		},
 	}, rp.WithHeader("x-request-id", "request-1"))
 	if err != nil {
 		log.Fatal(err)
@@ -48,6 +54,10 @@ func main() {
 
 `BaseURL` defaults to `http://127.0.0.1:8788`. The SDK derives the API base as
 `<BaseURL>/v1` unless the base already ends in `/v1`.
+
+`Sessions.Create` is the general way to create a playground, card, or version
+session. `Sessions.CreateExperience` is only for projects that have already
+published an experience version.
 
 ## Services
 
@@ -60,18 +70,54 @@ func main() {
 | `client.Versions` | Version preview |
 | `client.Cinema` | Cinema rounds and image tasks |
 
+## Role Card Session
+
+Create a role card with `client.Cards.Create`, then open a session from that
+card:
+
+```go
+ctx := context.Background()
+
+card, err := client.Cards.Create(ctx, rp.JSONMap{
+	"user_id":      "visitor-1",
+	"name":         "Ada",
+	"gender":       2,
+	"introduction": "Port pilot",
+	"greeting":     "Welcome to the fog harbor.",
+	"background":   "Knows the tides and shipping lanes.",
+	"lang":         "en",
+})
+if err != nil {
+	log.Fatal(err)
+}
+
+cardID, _ := card["id"].(string)
+session, err := client.Sessions.Create(ctx, rp.JSONMap{
+	"user_id": "visitor-1",
+	"card_id": cardID,
+})
+if err != nil {
+	log.Fatal(err)
+}
+fmt.Println(session.ID)
+```
+
+`card_version` is optional; omit it to pin the latest card version. Use
+`client.Cards.List`, `client.Cards.Get`, `client.Cards.Update`, and
+`client.Cards.Delete` to maintain cards.
+
 ## Chat Turn
 
 ```go
+ctx := context.Background()
+
 turn, err := client.Sessions.Turn(ctx, session.ID, rp.JSONMap{
 	"action":            "reply",
 	"text":              "Hello.",
 	"expected_revision": session.Revision,
-}, rp.WithHeaders(http.Header{
-	"x-infra-project-id": {projectID},
-	"x-infra-user-id":    {userID},
-	"x-request-id":       {requestID},
-}))
+}, rp.WithHeader("x-infra-project-id", projectID),
+	rp.WithHeader("x-infra-user-id", userID),
+	rp.WithHeader("x-request-id", requestID))
 if err != nil {
 	log.Fatal(err)
 }

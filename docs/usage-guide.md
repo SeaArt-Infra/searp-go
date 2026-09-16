@@ -20,15 +20,7 @@ client, err := rp.New(&rp.ClientConfig{
 
 ## Session Lifecycle
 
-Create a session from the current published version:
-
-```go
-session, err := client.Sessions.CreateExperience(ctx, rp.JSONMap{
-	"user_id": "user-123",
-})
-```
-
-Create a playground or card session with `client.Sessions.Create`:
+Create a playground, card, or version session with `client.Sessions.Create`:
 
 ```go
 session, err := client.Sessions.Create(ctx, rp.JSONMap{
@@ -40,6 +32,15 @@ session, err := client.Sessions.Create(ctx, rp.JSONMap{
 	},
 	"max_context":   16000,
 	"pinned_memory": "Keep the lamp lit.",
+})
+```
+
+If your project has already published an experience version, use
+`client.Sessions.CreateExperience` instead:
+
+```go
+session, err := client.Sessions.CreateExperience(ctx, rp.JSONMap{
+	"user_id": "user-123",
 })
 ```
 

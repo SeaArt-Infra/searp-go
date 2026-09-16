@@ -42,10 +42,18 @@ if err != nil {
 ## Create A Session
 
 ```go
-session, err := client.Sessions.CreateExperience(ctx, rp.JSONMap{
+session, err := client.Sessions.Create(ctx, rp.JSONMap{
 	"user_id": "user-123",
+	"request": rp.JSONMap{
+		"character": rp.JSONMap{"name": "Ada", "gender": 2},
+		"style":     1,
+		"lang":      "en",
+	},
 })
 ```
+
+Use `client.Sessions.CreateExperience` only when the project has already
+published an experience version.
 
 ## Run A Reply
 
