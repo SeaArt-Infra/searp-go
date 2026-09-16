@@ -169,3 +169,12 @@ user feedback differs. `rp.ErrConflict` usually means a stale
   `PrepareProjectIdentityMigration`, `PurgeProjectIdentityMigration`,
   `AdoptProjectIdentityMigration`, `RevertProjectIdentityMigration`,
   `PreviewProjectIdentityMigration`
+- `Admin.ListProjectRollouts`, `CreateProjectRollout`,
+  `GetCurrentProjectRollouts`, `GetProjectRollout`, `UpdateProjectRollout`,
+  `DeleteProjectRollout`, `StopProjectRollout`, `ListProjectRolloutAudits`
+- `Admin.ListProjectPresets`, `CreateProjectPreset`, `UpdateProjectPreset`,
+  `PublishProjectPreset`, `ListProjectSessions`, `UpdateProjectSession`
+- `Admin.ListProjectSuites`, `CreateProjectSuite`, `GetProjectSuite`,
+  `ListProjectEvaluations`, `GetProjectEvaluation`,
+  `CompareProjectEvaluation`, `CancelProjectEvaluation`,
+  `ResumeProjectEvaluation`, `ListProjectFeedback`, `CreateProjectFeedback`

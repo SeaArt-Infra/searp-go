@@ -654,6 +654,218 @@ func (a *AdminService) PreviewProjectIdentityMigration(ctx context.Context, opts
 	return out, nil
 }
 
+// ListProjectRollouts lists project rollouts.
+func (a *AdminService) ListProjectRollouts(ctx context.Context, projectID string, query map[string]string, opts ...RequestOption) (JSONMap, error) {
+	var out JSONMap
+	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectSubpath(projectID, "rollouts")+adminQueryString(query), nil, headersFromOptions(opts), &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// CreateProjectRollout creates a project rollout.
+func (a *AdminService) CreateProjectRollout(ctx context.Context, projectID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+	var out JSONMap
+	if err := adminRequestJSON(ctx, a.client, http.MethodPost, projectSubpath(projectID, "rollouts"), body, headersFromOptions(opts), &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// GetCurrentProjectRollouts returns currently active or scheduled rollouts.
+func (a *AdminService) GetCurrentProjectRollouts(ctx context.Context, projectID string, opts ...RequestOption) (JSONMap, error) {
+	var out JSONMap
+	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectSubpath(projectID, "rollouts/current"), nil, headersFromOptions(opts), &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// GetProjectRollout returns one project rollout.
+func (a *AdminService) GetProjectRollout(ctx context.Context, projectID, rolloutID string, opts ...RequestOption) (JSONMap, error) {
+	var out JSONMap
+	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectSubpath(projectID, "rollouts/"+projectPathSegment(rolloutID)), nil, headersFromOptions(opts), &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// UpdateProjectRollout patches one published project rollout.
+func (a *AdminService) UpdateProjectRollout(ctx context.Context, projectID, rolloutID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+	var out JSONMap
+	if err := adminRequestJSON(ctx, a.client, http.MethodPatch, projectSubpath(projectID, "rollouts/"+projectPathSegment(rolloutID)), body, headersFromOptions(opts), &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// DeleteProjectRollout deletes one project rollout.
+func (a *AdminService) DeleteProjectRollout(ctx context.Context, projectID, rolloutID string, opts ...RequestOption) error {
+	return adminRequestJSON(ctx, a.client, http.MethodDelete, projectSubpath(projectID, "rollouts/"+projectPathSegment(rolloutID)), nil, headersFromOptions(opts), nil)
+}
+
+// StopProjectRollout stops one project rollout.
+func (a *AdminService) StopProjectRollout(ctx context.Context, projectID, rolloutID string, opts ...RequestOption) (JSONMap, error) {
+	var out JSONMap
+	if err := adminRequestJSON(ctx, a.client, http.MethodPost, projectSubpath(projectID, "rollouts/"+projectPathSegment(rolloutID)+"/stop"), nil, headersFromOptions(opts), &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// ListProjectRolloutAudits lists audit records for one project rollout.
+func (a *AdminService) ListProjectRolloutAudits(ctx context.Context, projectID, rolloutID string, query map[string]string, opts ...RequestOption) (JSONMap, error) {
+	var out JSONMap
+	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectSubpath(projectID, "rollouts/"+projectPathSegment(rolloutID)+"/audit")+adminQueryString(query), nil, headersFromOptions(opts), &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// ListProjectPresets lists console sampling presets for a project.
+func (a *AdminService) ListProjectPresets(ctx context.Context, projectID string, opts ...RequestOption) (JSONMap, error) {
+	var out JSONMap
+	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectSubpath(projectID, "presets"), nil, headersFromOptions(opts), &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// CreateProjectPreset creates a console sampling preset for a project.
+func (a *AdminService) CreateProjectPreset(ctx context.Context, projectID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+	var out JSONMap
+	if err := adminRequestJSON(ctx, a.client, http.MethodPost, projectSubpath(projectID, "presets"), body, headersFromOptions(opts), &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// UpdateProjectPreset updates a console sampling preset for a project.
+func (a *AdminService) UpdateProjectPreset(ctx context.Context, projectID, presetID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+	var out JSONMap
+	if err := adminRequestJSON(ctx, a.client, http.MethodPut, projectSubpath(projectID, "presets/"+projectPathSegment(presetID)), body, headersFromOptions(opts), &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// PublishProjectPreset publishes a console preset to the project live sample.
+func (a *AdminService) PublishProjectPreset(ctx context.Context, projectID, presetID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+	var out JSONMap
+	if err := adminRequestJSON(ctx, a.client, http.MethodPost, projectSubpath(projectID, "presets/"+projectPathSegment(presetID)+"/publish"), body, headersFromOptions(opts), &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// ListProjectSessions lists console sessions for a project.
+func (a *AdminService) ListProjectSessions(ctx context.Context, projectID string, query map[string]string, opts ...RequestOption) (JSONMap, error) {
+	var out JSONMap
+	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectSubpath(projectID, "sessions")+adminQueryString(query), nil, headersFromOptions(opts), &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// UpdateProjectSession archives or unarchives a console session.
+func (a *AdminService) UpdateProjectSession(ctx context.Context, projectID, sessionID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+	var out JSONMap
+	if err := adminRequestJSON(ctx, a.client, http.MethodPatch, projectSubpath(projectID, "sessions/"+projectPathSegment(sessionID)), body, headersFromOptions(opts), &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// ListProjectSuites lists evaluation suites for a project.
+func (a *AdminService) ListProjectSuites(ctx context.Context, projectID string, query map[string]string, opts ...RequestOption) (JSONMap, error) {
+	var out JSONMap
+	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectSubpath(projectID, "suites")+adminQueryString(query), nil, headersFromOptions(opts), &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// CreateProjectSuite creates an evaluation suite for a project.
+func (a *AdminService) CreateProjectSuite(ctx context.Context, projectID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+	var out JSONMap
+	if err := adminRequestJSON(ctx, a.client, http.MethodPost, projectSubpath(projectID, "suites"), body, headersFromOptions(opts), &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// GetProjectSuite returns one evaluation suite for a project.
+func (a *AdminService) GetProjectSuite(ctx context.Context, projectID, suiteID string, opts ...RequestOption) (JSONMap, error) {
+	var out JSONMap
+	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectSubpath(projectID, "suites/"+projectPathSegment(suiteID)), nil, headersFromOptions(opts), &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// ListProjectEvaluations lists evaluation runs for a project.
+func (a *AdminService) ListProjectEvaluations(ctx context.Context, projectID string, query map[string]string, opts ...RequestOption) (JSONMap, error) {
+	var out JSONMap
+	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectSubpath(projectID, "evaluations")+adminQueryString(query), nil, headersFromOptions(opts), &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// GetProjectEvaluation returns one evaluation run for a project.
+func (a *AdminService) GetProjectEvaluation(ctx context.Context, projectID, evaluationID string, opts ...RequestOption) (JSONMap, error) {
+	var out JSONMap
+	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectSubpath(projectID, "evaluations/"+projectPathSegment(evaluationID)), nil, headersFromOptions(opts), &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// CompareProjectEvaluation compares one evaluation run with another.
+func (a *AdminService) CompareProjectEvaluation(ctx context.Context, projectID, evaluationID string, opts ...RequestOption) (JSONMap, error) {
+	var out JSONMap
+	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectSubpath(projectID, "evaluations/"+projectPathSegment(evaluationID)+"/compare"), nil, headersFromOptions(opts), &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// CancelProjectEvaluation cancels one evaluation run.
+func (a *AdminService) CancelProjectEvaluation(ctx context.Context, projectID, evaluationID string, opts ...RequestOption) (JSONMap, error) {
+	var out JSONMap
+	if err := adminRequestJSON(ctx, a.client, http.MethodPost, projectSubpath(projectID, "evaluations/"+projectPathSegment(evaluationID)+"/cancel"), nil, headersFromOptions(opts), &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// ResumeProjectEvaluation resumes one evaluation run.
+func (a *AdminService) ResumeProjectEvaluation(ctx context.Context, projectID, evaluationID string, opts ...RequestOption) (JSONMap, error) {
+	var out JSONMap
+	if err := adminRequestJSON(ctx, a.client, http.MethodPost, projectSubpath(projectID, "evaluations/"+projectPathSegment(evaluationID)+"/resume"), nil, headersFromOptions(opts), &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// ListProjectFeedback lists evaluation feedback for a project.
+func (a *AdminService) ListProjectFeedback(ctx context.Context, projectID string, query map[string]string, opts ...RequestOption) (JSONMap, error) {
+	var out JSONMap
+	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectSubpath(projectID, "feedback")+adminQueryString(query), nil, headersFromOptions(opts), &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// CreateProjectFeedback creates evaluation feedback for a project.
+func (a *AdminService) CreateProjectFeedback(ctx context.Context, projectID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+	var out JSONMap
+	if err := adminRequestJSON(ctx, a.client, http.MethodPost, projectSubpath(projectID, "feedback"), body, headersFromOptions(opts), &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func projectPathSegment(id string) string {
 	return url.PathEscape(id)
 }
