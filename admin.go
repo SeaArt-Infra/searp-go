@@ -866,6 +866,40 @@ func (a *AdminService) CreateProjectFeedback(ctx context.Context, projectID stri
 	return out, nil
 }
 
+// ProjectEngine proxies a request to the project engine API at
+// /admin/v1/projects/{projectID}/engine/{enginePath}.
+func (a *AdminService) ProjectEngine(ctx context.Context, projectID, method, enginePath string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+	return a.ProjectRequest(ctx, projectID, method, "engine/"+enginePath, body, opts...)
+}
+
+// ListAdminCards lists all project card metadata visible to an administrator.
+func (a *AdminService) ListAdminCards(ctx context.Context, query map[string]string, opts ...RequestOption) (JSONMap, error) {
+	var out JSONMap
+	if err := adminRequestJSON(ctx, a.client, http.MethodGet, "/cards"+adminQueryString(query), nil, headersFromOptions(opts), &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// TranslationsQueue returns the current translation queue, optionally filtered
+// by project_id.
+func (a *AdminService) TranslationsQueue(ctx context.Context, query map[string]string, opts ...RequestOption) (JSONMap, error) {
+	var out JSONMap
+	if err := adminRequestJSON(ctx, a.client, http.MethodGet, "/translations/queue"+adminQueryString(query), nil, headersFromOptions(opts), &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// TranslationsCallback sends a translation callback body to the engine.
+func (a *AdminService) TranslationsCallback(ctx context.Context, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+	var out JSONMap
+	if err := adminRequestJSON(ctx, a.client, http.MethodPost, "/translations/callback", body, headersFromOptions(opts), &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func projectPathSegment(id string) string {
 	return url.PathEscape(id)
 }

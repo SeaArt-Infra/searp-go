@@ -178,3 +178,5 @@ user feedback differs. `rp.ErrConflict` usually means a stale
   `ListProjectEvaluations`, `GetProjectEvaluation`,
   `CompareProjectEvaluation`, `CancelProjectEvaluation`,
   `ResumeProjectEvaluation`, `ListProjectFeedback`, `CreateProjectFeedback`
+- `Admin.ProjectEngine`, `ListAdminCards`, `TranslationsQueue`,
+  `TranslationsCallback`
