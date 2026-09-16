@@ -104,3 +104,33 @@ func TestAdminService_ErrorEnvelope(t *testing.T) {
 		t.Fatalf("unexpected error: %+v", seaErr)
 	}
 }
+
+func TestAdminService_ProjectAndCatalogPaths(t *testing.T) {
+	_, client := newAdminTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.Method == http.MethodGet && r.URL.EscapedPath() == "/projects/p1/versions" && r.URL.Query().Get("cursor") == "2":
+			writeJSON(w, 200, JSONMap{"items": []any{}})
+		case r.Method == http.MethodGet && r.URL.EscapedPath() == "/projects/p1/versions/v1/diff" && r.URL.Query().Get("against") == "v0":
+			writeJSON(w, 200, JSONMap{"changes": []any{}})
+		case r.Method == http.MethodGet && r.URL.Path == "/catalog/card-1/cover":
+			w.Header().Set("Content-Type", "image/png")
+			_, _ = w.Write([]byte("png-bytes"))
+		default:
+			t.Fatalf("unexpected request: %s %s", r.Method, r.URL.EscapedPath())
+		}
+	})
+
+	if _, err := client.Admin.ListProjectVersions(context.Background(), "p1", map[string]string{"cursor": "2"}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if _, err := client.Admin.DiffProjectVersion(context.Background(), "p1", "v1", "v0"); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	cover, err := client.Admin.GetCatalogCardCover(context.Background(), "card-1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if string(cover) != "png-bytes" {
+		t.Fatalf("unexpected cover: %q", cover)
+	}
+}

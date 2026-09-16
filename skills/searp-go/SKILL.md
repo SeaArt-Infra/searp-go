@@ -143,3 +143,29 @@ user feedback differs. `rp.ErrConflict` usually means a stale
 - `Admin.Request`, `Health`, `Whoami`, `AgentContract`, `ListProjects`,
   `CreateProject`, `GetProject`, `DeleteProject`, `RotateProjectToken`,
   `GetProjectLive`, `UpdateProjectLive`
+- `Admin.Raw`, `ProjectRequest`, `GetGlobalPack`, `UpdateGlobalPack`,
+  `GetProjectPack`, `PatchProjectPack`, `DeleteProjectPack`, `ForkProjectPack`
+- `Admin.ListCatalog`, `ImportCatalog`, `GetCatalogCard`, `UpdateCatalogCard`,
+  `DeleteCatalogCard`, `GetCatalogCardCover`
+- `Admin.ListProjectCards`, `GetProjectCard`, `UpdateProjectCard`,
+  `DeleteProjectCard`, `SetProjectCardListing`, `ImportProjectCard`,
+  `ImportProjectCardsBatch`, `ForkProjectCard`, `ListProjectCardVersions`,
+  `GetProjectCardVersion`, `DeleteProjectCardVersion`,
+  `RestoreProjectCardVersion`
+- `Admin.ListProjectExperiments`, `CreateProjectExperiment`,
+  `GetProjectExperiment`, `UpdateProjectExperiment`, `StartProjectExperiment`,
+  `PauseProjectExperiment`, `StopProjectExperiment`
+- `Admin.GetProjectLLM`, `UpdateProjectLLM`, `DeleteProjectLLM`
+- `Admin.ListProjectVersions`, `CreateProjectVersion`, `GetProjectVersion`,
+  `DiffProjectVersion`, `PublishProjectVersion`, `GetProjectRelease`,
+  `ListProjectReleases`, `RollbackProjectRelease`
+- `Admin.ListProjectSystemPrompts`, `CreateProjectSystemPrompt`,
+  `SetProjectSystemPromptDefault`, `GetProjectSystemPrompt`,
+  `UpdateProjectSystemPrompt`, `ListGlobalSystemPrompts`,
+  `CreateGlobalSystemPrompt`, `SetGlobalSystemPromptDefault`,
+  `GetGlobalSystemPrompt`
+- `Admin.ListProjectUserSessions`, `GetProjectUserSession`,
+  `GetProjectIdentityMigration`, `StartProjectIdentityMigration`,
+  `PrepareProjectIdentityMigration`, `PurgeProjectIdentityMigration`,
+  `AdoptProjectIdentityMigration`, `RevertProjectIdentityMigration`,
+  `PreviewProjectIdentityMigration`
