@@ -11,7 +11,6 @@ client, err := rp.New(&rp.ClientConfig{
 	APIKey:     "rp-your-project-token",
 	BaseURL:    "https://rp.example.com", // optional
 	APIBaseURL: "https://rp.example.com/v1", // optional override
-	AdminBaseURL: "https://admin.example.com/admin/v1", // optional override
 	Headers: http.Header{
 		"x-fixed-header": {"fixed-value"},
 	},
@@ -67,24 +66,6 @@ op, err := client.Operations.Run(ctx, session.ID, rp.JSONMap{
 
 Reuse the same key for retries; changing input under an existing key returns a
 conflict.
-
-## Control Plane
-
-Use `client.Admin` for the `/admin/v1` gateway API:
-
-```go
-health, _ := client.Admin.Health(ctx)
-whoami, _ := client.Admin.Whoami(ctx)
-projects, _ := client.Admin.ListProjects(ctx)
-project, _ := client.Admin.CreateProject(ctx, rp.JSONMap{
-	"id":    "project-id",
-	"token": "project-token-with-at-least-16-characters",
-})
-```
-
-`client.Admin.Request(ctx, method, path, body, opts...)` is the generic escape
-hatch for routes without a typed method. Control-plane errors are JSON
-envelopes; the SDK surfaces their `code` on `*rp.Error.Code`.
 
 ## Models, Assemble, And Debug
 

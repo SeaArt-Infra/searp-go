@@ -12,20 +12,18 @@ import (
 )
 
 const (
-	defaultBaseURL      = "http://127.0.0.1:8788"
-	defaultAdminBaseURL = "http://127.0.0.1:8790/admin/v1"
-	defaultTimeout      = 5 * time.Minute
-	sdkVersion          = "0.1.0"
+	defaultBaseURL = "http://127.0.0.1:8788"
+	defaultTimeout = 5 * time.Minute
+	sdkVersion     = "0.1.0"
 )
 
 // Client is the SeaRP engine API client. Create one with New and reuse it.
 type Client struct {
-	apiKey       string
-	baseURL      string
-	apiBaseURL   string
-	adminBaseURL string
-	headers      http.Header
-	httpClient   *http.Client
+	apiKey     string
+	baseURL    string
+	apiBaseURL string
+	headers    http.Header
+	httpClient *http.Client
 
 	Sessions   *SessionService
 	Operations *OperationService
@@ -33,7 +31,6 @@ type Client struct {
 	Cards      *CardsService
 	Versions   *VersionsService
 	Cinema     *CinemaService
-	Admin      *AdminService
 }
 
 // ClientConfig configures a Client.
@@ -42,13 +39,12 @@ type Client struct {
 // The SDK derives APIBaseURL as <BaseURL>/v1 unless BaseURL already ends with
 // /v1 or APIBaseURL is explicitly set.
 type ClientConfig struct {
-	APIKey       string
-	BaseURL      string
-	APIBaseURL   string
-	AdminBaseURL string
-	Headers      http.Header
-	HTTPClient   *http.Client
-	Timeout      time.Duration
+	APIKey     string
+	BaseURL    string
+	APIBaseURL string
+	Headers    http.Header
+	HTTPClient *http.Client
+	Timeout    time.Duration
 }
 
 // New creates a Client from an explicit ClientConfig.
@@ -64,10 +60,6 @@ func New(cfg *ClientConfig) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	adminBase, err := resolveAdminBaseURL(cfg.BaseURL, root, cfg.AdminBaseURL)
-	if err != nil {
-		return nil, err
-	}
 	httpClient := buildHTTPClient(cfg)
 	headers := cfg.Headers.Clone()
 	if headers == nil {
@@ -75,12 +67,11 @@ func New(cfg *ClientConfig) (*Client, error) {
 	}
 
 	client := &Client{
-		apiKey:       cfg.APIKey,
-		baseURL:      root,
-		apiBaseURL:   apiBase,
-		adminBaseURL: adminBase,
-		headers:      headers,
-		httpClient:   httpClient,
+		apiKey:     cfg.APIKey,
+		baseURL:    root,
+		apiBaseURL: apiBase,
+		headers:    headers,
+		httpClient: httpClient,
 	}
 
 	newService := func() *transport.Client {
@@ -98,13 +89,6 @@ func New(cfg *ClientConfig) (*Client, error) {
 	client.Cards = &CardsService{client: newService()}
 	client.Versions = &VersionsService{client: newService()}
 	client.Cinema = &CinemaService{client: newService()}
-	client.Admin = &AdminService{client: &transport.Client{
-		APIKey:     client.apiKey,
-		BaseURL:    client.adminBaseURL,
-		Headers:    client.headers.Clone(),
-		UserAgent:  "searp-go/" + sdkVersion,
-		HTTPClient: httpClient,
-	}}
 	return client, nil
 }
 
@@ -140,16 +124,6 @@ func resolveAPIBaseURL(root, raw string) (string, error) {
 		return root, nil
 	}
 	return joinURL(root, "v1")
-}
-
-func resolveAdminBaseURL(rawRoot, root, rawAdmin string) (string, error) {
-	if rawAdmin != "" {
-		return normalizeURL(rawAdmin)
-	}
-	if strings.TrimSpace(rawRoot) == "" {
-		return normalizeURL(defaultAdminBaseURL)
-	}
-	return joinURL(root, "admin/v1")
 }
 
 func normalizeURL(raw string) (string, error) {

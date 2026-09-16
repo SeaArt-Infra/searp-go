@@ -9,16 +9,16 @@ import (
 	"github.com/SeaArt-Infra/searp-go/internal/transport"
 )
 
-// AdminService provides access to the SeaRP control-plane API served at
+// adminService provides access to the SeaRP control-plane API served at
 // /admin/v1 by the project gateway.
-type AdminService struct {
+type adminService struct {
 	client *transport.Client
 }
 
 // Request performs a JSON request against the /admin/v1 base and returns the
 // decoded JSON object. It is useful for endpoints not yet exposed by a typed
 // Admin method.
-func (a *AdminService) Request(ctx context.Context, method, path string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) Request(ctx context.Context, method, path string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, method, path, body, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -27,7 +27,7 @@ func (a *AdminService) Request(ctx context.Context, method, path string, body JS
 }
 
 // Health returns the gateway health object from GET /admin/v1/health.
-func (a *AdminService) Health(ctx context.Context, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) Health(ctx context.Context, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, "/health", nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -36,7 +36,7 @@ func (a *AdminService) Health(ctx context.Context, opts ...RequestOption) (JSONM
 }
 
 // Whoami returns the current actor role and project ID, if any.
-func (a *AdminService) Whoami(ctx context.Context, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) Whoami(ctx context.Context, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, "/whoami", nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -45,7 +45,7 @@ func (a *AdminService) Whoami(ctx context.Context, opts ...RequestOption) (JSONM
 }
 
 // AgentContract returns the published client/agent contract.
-func (a *AdminService) AgentContract(ctx context.Context, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) AgentContract(ctx context.Context, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, "/agent/contract", nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -54,7 +54,7 @@ func (a *AdminService) AgentContract(ctx context.Context, opts ...RequestOption)
 }
 
 // ListProjects returns the projects visible to the current token.
-func (a *AdminService) ListProjects(ctx context.Context, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) ListProjects(ctx context.Context, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, "/projects", nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -63,7 +63,7 @@ func (a *AdminService) ListProjects(ctx context.Context, opts ...RequestOption) 
 }
 
 // CreateProject creates a project with an explicit id and token.
-func (a *AdminService) CreateProject(ctx context.Context, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) CreateProject(ctx context.Context, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPost, "/projects", body, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -72,7 +72,7 @@ func (a *AdminService) CreateProject(ctx context.Context, body JSONMap, opts ...
 }
 
 // GetProject returns one project by ID.
-func (a *AdminService) GetProject(ctx context.Context, id string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) GetProject(ctx context.Context, id string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, "/projects/"+projectPathSegment(id), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -81,12 +81,12 @@ func (a *AdminService) GetProject(ctx context.Context, id string, opts ...Reques
 }
 
 // DeleteProject deletes one project by ID.
-func (a *AdminService) DeleteProject(ctx context.Context, id string, opts ...RequestOption) error {
+func (a *adminService) DeleteProject(ctx context.Context, id string, opts ...RequestOption) error {
 	return adminRequestJSON(ctx, a.client, http.MethodDelete, "/projects/"+projectPathSegment(id), nil, headersFromOptions(opts), nil)
 }
 
 // RotateProjectToken rotates the project token and returns the updated project.
-func (a *AdminService) RotateProjectToken(ctx context.Context, id string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) RotateProjectToken(ctx context.Context, id string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPost, "/projects/"+projectPathSegment(id)+"/token", nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -95,7 +95,7 @@ func (a *AdminService) RotateProjectToken(ctx context.Context, id string, opts .
 }
 
 // GetProjectLive returns the currently published live sample for a project.
-func (a *AdminService) GetProjectLive(ctx context.Context, id string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) GetProjectLive(ctx context.Context, id string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, "/projects/"+projectPathSegment(id)+"/live", nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -104,7 +104,7 @@ func (a *AdminService) GetProjectLive(ctx context.Context, id string, opts ...Re
 }
 
 // UpdateProjectLive updates the published live sample for a project.
-func (a *AdminService) UpdateProjectLive(ctx context.Context, id string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) UpdateProjectLive(ctx context.Context, id string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPut, "/projects/"+projectPathSegment(id)+"/live", body, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -114,14 +114,14 @@ func (a *AdminService) UpdateProjectLive(ctx context.Context, id string, body JS
 
 // Raw performs a control-plane request and returns the status code and raw
 // body. Use it for binary endpoints such as catalog card covers.
-func (a *AdminService) Raw(ctx context.Context, method, path string, body JSONMap, opts ...RequestOption) (int, []byte, error) {
+func (a *adminService) Raw(ctx context.Context, method, path string, body JSONMap, opts ...RequestOption) (int, []byte, error) {
 	return a.client.Request(ctx, method, path, body, headersFromOptions(opts))
 }
 
 // ProjectRequest performs a JSON request against
 // /admin/v1/projects/{projectID}/{subpath}. It is the generic escape hatch for
 // project-scoped control-plane routes not covered by a typed method.
-func (a *AdminService) ProjectRequest(ctx context.Context, projectID, method, subpath string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) ProjectRequest(ctx context.Context, projectID, method, subpath string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	path := "/projects/" + projectPathSegment(projectID)
 	if subpath != "" {
@@ -134,7 +134,7 @@ func (a *AdminService) ProjectRequest(ctx context.Context, projectID, method, su
 }
 
 // GetGlobalPack returns the global prompt pack.
-func (a *AdminService) GetGlobalPack(ctx context.Context, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) GetGlobalPack(ctx context.Context, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, "/pack", nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -143,7 +143,7 @@ func (a *AdminService) GetGlobalPack(ctx context.Context, opts ...RequestOption)
 }
 
 // UpdateGlobalPack replaces the global prompt pack.
-func (a *AdminService) UpdateGlobalPack(ctx context.Context, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) UpdateGlobalPack(ctx context.Context, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPut, "/pack", body, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -152,7 +152,7 @@ func (a *AdminService) UpdateGlobalPack(ctx context.Context, body JSONMap, opts 
 }
 
 // GetProjectPack returns a project pack or its inherited global pack.
-func (a *AdminService) GetProjectPack(ctx context.Context, projectID string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) GetProjectPack(ctx context.Context, projectID string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectSubpath(projectID, "pack"), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -161,7 +161,7 @@ func (a *AdminService) GetProjectPack(ctx context.Context, projectID string, opt
 }
 
 // PatchProjectPack updates a forked project pack.
-func (a *AdminService) PatchProjectPack(ctx context.Context, projectID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) PatchProjectPack(ctx context.Context, projectID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPatch, projectSubpath(projectID, "pack"), body, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -170,12 +170,12 @@ func (a *AdminService) PatchProjectPack(ctx context.Context, projectID string, b
 }
 
 // DeleteProjectPack removes a forked project pack and restores inheritance.
-func (a *AdminService) DeleteProjectPack(ctx context.Context, projectID string, opts ...RequestOption) error {
+func (a *adminService) DeleteProjectPack(ctx context.Context, projectID string, opts ...RequestOption) error {
 	return adminRequestJSON(ctx, a.client, http.MethodDelete, projectSubpath(projectID, "pack"), nil, headersFromOptions(opts), nil)
 }
 
 // ForkProjectPack forks the global pack into a project pack.
-func (a *AdminService) ForkProjectPack(ctx context.Context, projectID string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) ForkProjectPack(ctx context.Context, projectID string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPost, projectSubpath(projectID, "pack/fork"), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -184,7 +184,7 @@ func (a *AdminService) ForkProjectPack(ctx context.Context, projectID string, op
 }
 
 // ListCatalog lists the shared role-card catalog.
-func (a *AdminService) ListCatalog(ctx context.Context, query map[string]string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) ListCatalog(ctx context.Context, query map[string]string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, "/catalog"+adminQueryString(query), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -193,7 +193,7 @@ func (a *AdminService) ListCatalog(ctx context.Context, query map[string]string,
 }
 
 // ImportCatalog imports one shared catalog card.
-func (a *AdminService) ImportCatalog(ctx context.Context, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) ImportCatalog(ctx context.Context, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPost, "/catalog/import", body, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -202,7 +202,7 @@ func (a *AdminService) ImportCatalog(ctx context.Context, body JSONMap, opts ...
 }
 
 // GetCatalogCard returns one shared catalog card.
-func (a *AdminService) GetCatalogCard(ctx context.Context, cardID string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) GetCatalogCard(ctx context.Context, cardID string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, "/catalog/"+projectPathSegment(cardID), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -211,7 +211,7 @@ func (a *AdminService) GetCatalogCard(ctx context.Context, cardID string, opts .
 }
 
 // UpdateCatalogCard patches one shared catalog card.
-func (a *AdminService) UpdateCatalogCard(ctx context.Context, cardID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) UpdateCatalogCard(ctx context.Context, cardID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPatch, "/catalog/"+projectPathSegment(cardID), body, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -220,17 +220,17 @@ func (a *AdminService) UpdateCatalogCard(ctx context.Context, cardID string, bod
 }
 
 // DeleteCatalogCard deletes one shared catalog card.
-func (a *AdminService) DeleteCatalogCard(ctx context.Context, cardID string, opts ...RequestOption) error {
+func (a *adminService) DeleteCatalogCard(ctx context.Context, cardID string, opts ...RequestOption) error {
 	return adminRequestJSON(ctx, a.client, http.MethodDelete, "/catalog/"+projectPathSegment(cardID), nil, headersFromOptions(opts), nil)
 }
 
 // GetCatalogCardCover returns the binary cover image for a catalog card.
-func (a *AdminService) GetCatalogCardCover(ctx context.Context, cardID string, opts ...RequestOption) ([]byte, error) {
+func (a *adminService) GetCatalogCardCover(ctx context.Context, cardID string, opts ...RequestOption) ([]byte, error) {
 	return adminRawRequest(ctx, a.client, http.MethodGet, "/catalog/"+projectPathSegment(cardID)+"/cover", nil, headersFromOptions(opts))
 }
 
 // ListProjectCards lists project role-card metadata.
-func (a *AdminService) ListProjectCards(ctx context.Context, projectID string, query map[string]string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) ListProjectCards(ctx context.Context, projectID string, query map[string]string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectSubpath(projectID, "cards")+adminQueryString(query), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -239,7 +239,7 @@ func (a *AdminService) ListProjectCards(ctx context.Context, projectID string, q
 }
 
 // GetProjectCard returns one project role card.
-func (a *AdminService) GetProjectCard(ctx context.Context, projectID, cardID string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) GetProjectCard(ctx context.Context, projectID, cardID string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectCardPath(projectID, cardID), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -248,7 +248,7 @@ func (a *AdminService) GetProjectCard(ctx context.Context, projectID, cardID str
 }
 
 // UpdateProjectCard patches one project role card.
-func (a *AdminService) UpdateProjectCard(ctx context.Context, projectID, cardID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) UpdateProjectCard(ctx context.Context, projectID, cardID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPatch, projectCardPath(projectID, cardID), body, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -257,12 +257,12 @@ func (a *AdminService) UpdateProjectCard(ctx context.Context, projectID, cardID 
 }
 
 // DeleteProjectCard deletes one project role card.
-func (a *AdminService) DeleteProjectCard(ctx context.Context, projectID, cardID string, opts ...RequestOption) error {
+func (a *adminService) DeleteProjectCard(ctx context.Context, projectID, cardID string, opts ...RequestOption) error {
 	return adminRequestJSON(ctx, a.client, http.MethodDelete, projectCardPath(projectID, cardID), nil, headersFromOptions(opts), nil)
 }
 
 // SetProjectCardListing updates a project card listing flag.
-func (a *AdminService) SetProjectCardListing(ctx context.Context, projectID, cardID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) SetProjectCardListing(ctx context.Context, projectID, cardID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPatch, projectCardPath(projectID, cardID)+"/listing", body, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -271,7 +271,7 @@ func (a *AdminService) SetProjectCardListing(ctx context.Context, projectID, car
 }
 
 // ImportProjectCard imports one full card into a project.
-func (a *AdminService) ImportProjectCard(ctx context.Context, projectID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) ImportProjectCard(ctx context.Context, projectID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPost, projectSubpath(projectID, "cards/import"), body, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -280,7 +280,7 @@ func (a *AdminService) ImportProjectCard(ctx context.Context, projectID string, 
 }
 
 // ImportProjectCardsBatch imports up to 100 full cards into a project.
-func (a *AdminService) ImportProjectCardsBatch(ctx context.Context, projectID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) ImportProjectCardsBatch(ctx context.Context, projectID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPost, projectSubpath(projectID, "cards/import/batch"), body, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -289,7 +289,7 @@ func (a *AdminService) ImportProjectCardsBatch(ctx context.Context, projectID st
 }
 
 // ForkProjectCard forks a shared catalog card into a project.
-func (a *AdminService) ForkProjectCard(ctx context.Context, projectID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) ForkProjectCard(ctx context.Context, projectID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPost, projectSubpath(projectID, "cards/fork"), body, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -298,7 +298,7 @@ func (a *AdminService) ForkProjectCard(ctx context.Context, projectID string, bo
 }
 
 // ListProjectCardVersions lists versions for one project card.
-func (a *AdminService) ListProjectCardVersions(ctx context.Context, projectID, cardID string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) ListProjectCardVersions(ctx context.Context, projectID, cardID string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectCardPath(projectID, cardID)+"/versions", nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -307,7 +307,7 @@ func (a *AdminService) ListProjectCardVersions(ctx context.Context, projectID, c
 }
 
 // GetProjectCardVersion returns one project card version.
-func (a *AdminService) GetProjectCardVersion(ctx context.Context, projectID, cardID string, version uint64, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) GetProjectCardVersion(ctx context.Context, projectID, cardID string, version uint64, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectCardPath(projectID, cardID)+"/versions/"+uintString(version), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -316,12 +316,12 @@ func (a *AdminService) GetProjectCardVersion(ctx context.Context, projectID, car
 }
 
 // DeleteProjectCardVersion deletes one project card version.
-func (a *AdminService) DeleteProjectCardVersion(ctx context.Context, projectID, cardID string, version uint64, opts ...RequestOption) error {
+func (a *adminService) DeleteProjectCardVersion(ctx context.Context, projectID, cardID string, version uint64, opts ...RequestOption) error {
 	return adminRequestJSON(ctx, a.client, http.MethodDelete, projectCardPath(projectID, cardID)+"/versions/"+uintString(version), nil, headersFromOptions(opts), nil)
 }
 
 // RestoreProjectCardVersion restores one project card version.
-func (a *AdminService) RestoreProjectCardVersion(ctx context.Context, projectID, cardID string, version uint64, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) RestoreProjectCardVersion(ctx context.Context, projectID, cardID string, version uint64, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPost, projectCardPath(projectID, cardID)+"/versions/"+uintString(version)+"/restore", nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -330,7 +330,7 @@ func (a *AdminService) RestoreProjectCardVersion(ctx context.Context, projectID,
 }
 
 // ListProjectExperiments lists project experiments.
-func (a *AdminService) ListProjectExperiments(ctx context.Context, projectID string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) ListProjectExperiments(ctx context.Context, projectID string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectSubpath(projectID, "experiments"), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -339,7 +339,7 @@ func (a *AdminService) ListProjectExperiments(ctx context.Context, projectID str
 }
 
 // CreateProjectExperiment creates a project experiment.
-func (a *AdminService) CreateProjectExperiment(ctx context.Context, projectID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) CreateProjectExperiment(ctx context.Context, projectID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPost, projectSubpath(projectID, "experiments"), body, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -348,7 +348,7 @@ func (a *AdminService) CreateProjectExperiment(ctx context.Context, projectID st
 }
 
 // GetProjectExperiment returns one project experiment.
-func (a *AdminService) GetProjectExperiment(ctx context.Context, projectID, experimentID string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) GetProjectExperiment(ctx context.Context, projectID, experimentID string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectSubpath(projectID, "experiments/"+projectPathSegment(experimentID)), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -357,7 +357,7 @@ func (a *AdminService) GetProjectExperiment(ctx context.Context, projectID, expe
 }
 
 // UpdateProjectExperiment patches one project experiment.
-func (a *AdminService) UpdateProjectExperiment(ctx context.Context, projectID, experimentID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) UpdateProjectExperiment(ctx context.Context, projectID, experimentID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPatch, projectSubpath(projectID, "experiments/"+projectPathSegment(experimentID)), body, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -366,7 +366,7 @@ func (a *AdminService) UpdateProjectExperiment(ctx context.Context, projectID, e
 }
 
 // StartProjectExperiment starts one project experiment.
-func (a *AdminService) StartProjectExperiment(ctx context.Context, projectID, experimentID string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) StartProjectExperiment(ctx context.Context, projectID, experimentID string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPost, projectSubpath(projectID, "experiments/"+projectPathSegment(experimentID)+"/start"), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -375,7 +375,7 @@ func (a *AdminService) StartProjectExperiment(ctx context.Context, projectID, ex
 }
 
 // PauseProjectExperiment pauses one project experiment.
-func (a *AdminService) PauseProjectExperiment(ctx context.Context, projectID, experimentID string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) PauseProjectExperiment(ctx context.Context, projectID, experimentID string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPost, projectSubpath(projectID, "experiments/"+projectPathSegment(experimentID)+"/pause"), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -384,7 +384,7 @@ func (a *AdminService) PauseProjectExperiment(ctx context.Context, projectID, ex
 }
 
 // StopProjectExperiment stops one project experiment.
-func (a *AdminService) StopProjectExperiment(ctx context.Context, projectID, experimentID string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) StopProjectExperiment(ctx context.Context, projectID, experimentID string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPost, projectSubpath(projectID, "experiments/"+projectPathSegment(experimentID)+"/stop"), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -393,7 +393,7 @@ func (a *AdminService) StopProjectExperiment(ctx context.Context, projectID, exp
 }
 
 // GetProjectLLM returns the project LLM connection state.
-func (a *AdminService) GetProjectLLM(ctx context.Context, projectID string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) GetProjectLLM(ctx context.Context, projectID string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectSubpath(projectID, "llm"), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -402,7 +402,7 @@ func (a *AdminService) GetProjectLLM(ctx context.Context, projectID string, opts
 }
 
 // UpdateProjectLLM updates the project LLM provider or key.
-func (a *AdminService) UpdateProjectLLM(ctx context.Context, projectID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) UpdateProjectLLM(ctx context.Context, projectID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPut, projectSubpath(projectID, "llm"), body, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -411,7 +411,7 @@ func (a *AdminService) UpdateProjectLLM(ctx context.Context, projectID string, b
 }
 
 // DeleteProjectLLM resets the project LLM connection.
-func (a *AdminService) DeleteProjectLLM(ctx context.Context, projectID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) DeleteProjectLLM(ctx context.Context, projectID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodDelete, projectSubpath(projectID, "llm"), body, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -420,7 +420,7 @@ func (a *AdminService) DeleteProjectLLM(ctx context.Context, projectID string, b
 }
 
 // ListProjectVersions lists project versions.
-func (a *AdminService) ListProjectVersions(ctx context.Context, projectID string, query map[string]string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) ListProjectVersions(ctx context.Context, projectID string, query map[string]string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectSubpath(projectID, "versions")+adminQueryString(query), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -429,7 +429,7 @@ func (a *AdminService) ListProjectVersions(ctx context.Context, projectID string
 }
 
 // CreateProjectVersion creates a project version.
-func (a *AdminService) CreateProjectVersion(ctx context.Context, projectID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) CreateProjectVersion(ctx context.Context, projectID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPost, projectSubpath(projectID, "versions"), body, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -438,7 +438,7 @@ func (a *AdminService) CreateProjectVersion(ctx context.Context, projectID strin
 }
 
 // GetProjectVersion returns one project version.
-func (a *AdminService) GetProjectVersion(ctx context.Context, projectID, versionID string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) GetProjectVersion(ctx context.Context, projectID, versionID string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectSubpath(projectID, "versions/"+projectPathSegment(versionID)), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -447,7 +447,7 @@ func (a *AdminService) GetProjectVersion(ctx context.Context, projectID, version
 }
 
 // DiffProjectVersion diffs one project version against another.
-func (a *AdminService) DiffProjectVersion(ctx context.Context, projectID, versionID, against string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) DiffProjectVersion(ctx context.Context, projectID, versionID, against string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	query := map[string]string{"against": against}
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectSubpath(projectID, "versions/"+projectPathSegment(versionID)+"/diff")+adminQueryString(query), nil, headersFromOptions(opts), &out); err != nil {
@@ -457,7 +457,7 @@ func (a *AdminService) DiffProjectVersion(ctx context.Context, projectID, versio
 }
 
 // PublishProjectVersion publishes a project version.
-func (a *AdminService) PublishProjectVersion(ctx context.Context, projectID, versionID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) PublishProjectVersion(ctx context.Context, projectID, versionID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPost, projectSubpath(projectID, "versions/"+projectPathSegment(versionID)+"/publish"), body, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -466,7 +466,7 @@ func (a *AdminService) PublishProjectVersion(ctx context.Context, projectID, ver
 }
 
 // GetProjectRelease returns the current project release pointer.
-func (a *AdminService) GetProjectRelease(ctx context.Context, projectID string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) GetProjectRelease(ctx context.Context, projectID string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectSubpath(projectID, "release"), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -475,7 +475,7 @@ func (a *AdminService) GetProjectRelease(ctx context.Context, projectID string, 
 }
 
 // ListProjectReleases lists project release records.
-func (a *AdminService) ListProjectReleases(ctx context.Context, projectID string, query map[string]string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) ListProjectReleases(ctx context.Context, projectID string, query map[string]string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectSubpath(projectID, "releases")+adminQueryString(query), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -484,7 +484,7 @@ func (a *AdminService) ListProjectReleases(ctx context.Context, projectID string
 }
 
 // RollbackProjectRelease rolls the project release pointer back to a record.
-func (a *AdminService) RollbackProjectRelease(ctx context.Context, projectID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) RollbackProjectRelease(ctx context.Context, projectID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPost, projectSubpath(projectID, "release/rollback"), body, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -493,7 +493,7 @@ func (a *AdminService) RollbackProjectRelease(ctx context.Context, projectID str
 }
 
 // ListProjectSystemPrompts lists project system prompts.
-func (a *AdminService) ListProjectSystemPrompts(ctx context.Context, projectID string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) ListProjectSystemPrompts(ctx context.Context, projectID string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectSubpath(projectID, "system-prompts"), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -502,7 +502,7 @@ func (a *AdminService) ListProjectSystemPrompts(ctx context.Context, projectID s
 }
 
 // CreateProjectSystemPrompt creates a project system prompt.
-func (a *AdminService) CreateProjectSystemPrompt(ctx context.Context, projectID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) CreateProjectSystemPrompt(ctx context.Context, projectID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPost, projectSubpath(projectID, "system-prompts"), body, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -511,7 +511,7 @@ func (a *AdminService) CreateProjectSystemPrompt(ctx context.Context, projectID 
 }
 
 // SetProjectSystemPromptDefault selects the default project system prompt.
-func (a *AdminService) SetProjectSystemPromptDefault(ctx context.Context, projectID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) SetProjectSystemPromptDefault(ctx context.Context, projectID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPut, projectSubpath(projectID, "system-prompts"), body, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -520,7 +520,7 @@ func (a *AdminService) SetProjectSystemPromptDefault(ctx context.Context, projec
 }
 
 // GetProjectSystemPrompt returns one project system prompt.
-func (a *AdminService) GetProjectSystemPrompt(ctx context.Context, projectID, promptID string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) GetProjectSystemPrompt(ctx context.Context, projectID, promptID string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectSubpath(projectID, "system-prompts/"+projectPathSegment(promptID)), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -529,7 +529,7 @@ func (a *AdminService) GetProjectSystemPrompt(ctx context.Context, projectID, pr
 }
 
 // UpdateProjectSystemPrompt forks or updates one project system prompt.
-func (a *AdminService) UpdateProjectSystemPrompt(ctx context.Context, projectID, promptID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) UpdateProjectSystemPrompt(ctx context.Context, projectID, promptID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPut, projectSubpath(projectID, "system-prompts/"+projectPathSegment(promptID)), body, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -538,7 +538,7 @@ func (a *AdminService) UpdateProjectSystemPrompt(ctx context.Context, projectID,
 }
 
 // ListGlobalSystemPrompts lists global system prompts.
-func (a *AdminService) ListGlobalSystemPrompts(ctx context.Context, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) ListGlobalSystemPrompts(ctx context.Context, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, "/global-system-prompts", nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -547,7 +547,7 @@ func (a *AdminService) ListGlobalSystemPrompts(ctx context.Context, opts ...Requ
 }
 
 // CreateGlobalSystemPrompt creates a global system prompt.
-func (a *AdminService) CreateGlobalSystemPrompt(ctx context.Context, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) CreateGlobalSystemPrompt(ctx context.Context, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPost, "/global-system-prompts", body, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -556,7 +556,7 @@ func (a *AdminService) CreateGlobalSystemPrompt(ctx context.Context, body JSONMa
 }
 
 // SetGlobalSystemPromptDefault selects the default global system prompt.
-func (a *AdminService) SetGlobalSystemPromptDefault(ctx context.Context, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) SetGlobalSystemPromptDefault(ctx context.Context, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPut, "/global-system-prompts", body, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -565,7 +565,7 @@ func (a *AdminService) SetGlobalSystemPromptDefault(ctx context.Context, body JS
 }
 
 // GetGlobalSystemPrompt returns one global system prompt.
-func (a *AdminService) GetGlobalSystemPrompt(ctx context.Context, promptID string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) GetGlobalSystemPrompt(ctx context.Context, promptID string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, "/global-system-prompts/"+projectPathSegment(promptID), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -574,7 +574,7 @@ func (a *AdminService) GetGlobalSystemPrompt(ctx context.Context, promptID strin
 }
 
 // ListProjectUserSessions lists project user-session relationships.
-func (a *AdminService) ListProjectUserSessions(ctx context.Context, projectID string, query map[string]string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) ListProjectUserSessions(ctx context.Context, projectID string, query map[string]string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectSubpath(projectID, "user-sessions")+adminQueryString(query), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -583,7 +583,7 @@ func (a *AdminService) ListProjectUserSessions(ctx context.Context, projectID st
 }
 
 // GetProjectUserSession returns one project user-session relationship.
-func (a *AdminService) GetProjectUserSession(ctx context.Context, projectID, sessionID string, query map[string]string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) GetProjectUserSession(ctx context.Context, projectID, sessionID string, query map[string]string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectSubpath(projectID, "user-sessions/"+projectPathSegment(sessionID))+adminQueryString(query), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -592,7 +592,7 @@ func (a *AdminService) GetProjectUserSession(ctx context.Context, projectID, ses
 }
 
 // GetProjectIdentityMigration returns the project identity migration status.
-func (a *AdminService) GetProjectIdentityMigration(ctx context.Context, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) GetProjectIdentityMigration(ctx context.Context, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, "/project-identity-migration", nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -601,7 +601,7 @@ func (a *AdminService) GetProjectIdentityMigration(ctx context.Context, opts ...
 }
 
 // StartProjectIdentityMigration starts the project identity switch.
-func (a *AdminService) StartProjectIdentityMigration(ctx context.Context, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) StartProjectIdentityMigration(ctx context.Context, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPost, "/project-identity-migration", body, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -610,7 +610,7 @@ func (a *AdminService) StartProjectIdentityMigration(ctx context.Context, body J
 }
 
 // PrepareProjectIdentityMigration prepares the legacy identity migration schema.
-func (a *AdminService) PrepareProjectIdentityMigration(ctx context.Context, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) PrepareProjectIdentityMigration(ctx context.Context, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPost, "/project-identity-migration/prepare", nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -619,7 +619,7 @@ func (a *AdminService) PrepareProjectIdentityMigration(ctx context.Context, opts
 }
 
 // PurgeProjectIdentityMigration purges or previews purging legacy identity keys.
-func (a *AdminService) PurgeProjectIdentityMigration(ctx context.Context, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) PurgeProjectIdentityMigration(ctx context.Context, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPost, "/project-identity-migration/purge", body, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -628,7 +628,7 @@ func (a *AdminService) PurgeProjectIdentityMigration(ctx context.Context, body J
 }
 
 // AdoptProjectIdentityMigration adopts or previews a legacy project identity.
-func (a *AdminService) AdoptProjectIdentityMigration(ctx context.Context, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) AdoptProjectIdentityMigration(ctx context.Context, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPost, "/project-identity-migration/adopt", body, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -637,7 +637,7 @@ func (a *AdminService) AdoptProjectIdentityMigration(ctx context.Context, body J
 }
 
 // RevertProjectIdentityMigration reverts or previews a legacy project identity.
-func (a *AdminService) RevertProjectIdentityMigration(ctx context.Context, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) RevertProjectIdentityMigration(ctx context.Context, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPost, "/project-identity-migration/revert", body, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -646,7 +646,7 @@ func (a *AdminService) RevertProjectIdentityMigration(ctx context.Context, body 
 }
 
 // PreviewProjectIdentityMigration previews the legacy project identity migration.
-func (a *AdminService) PreviewProjectIdentityMigration(ctx context.Context, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) PreviewProjectIdentityMigration(ctx context.Context, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, "/project-identity-migration/preview", nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -655,7 +655,7 @@ func (a *AdminService) PreviewProjectIdentityMigration(ctx context.Context, opts
 }
 
 // ListProjectRollouts lists project rollouts.
-func (a *AdminService) ListProjectRollouts(ctx context.Context, projectID string, query map[string]string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) ListProjectRollouts(ctx context.Context, projectID string, query map[string]string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectSubpath(projectID, "rollouts")+adminQueryString(query), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -664,7 +664,7 @@ func (a *AdminService) ListProjectRollouts(ctx context.Context, projectID string
 }
 
 // CreateProjectRollout creates a project rollout.
-func (a *AdminService) CreateProjectRollout(ctx context.Context, projectID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) CreateProjectRollout(ctx context.Context, projectID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPost, projectSubpath(projectID, "rollouts"), body, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -673,7 +673,7 @@ func (a *AdminService) CreateProjectRollout(ctx context.Context, projectID strin
 }
 
 // GetCurrentProjectRollouts returns currently active or scheduled rollouts.
-func (a *AdminService) GetCurrentProjectRollouts(ctx context.Context, projectID string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) GetCurrentProjectRollouts(ctx context.Context, projectID string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectSubpath(projectID, "rollouts/current"), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -682,7 +682,7 @@ func (a *AdminService) GetCurrentProjectRollouts(ctx context.Context, projectID 
 }
 
 // GetProjectRollout returns one project rollout.
-func (a *AdminService) GetProjectRollout(ctx context.Context, projectID, rolloutID string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) GetProjectRollout(ctx context.Context, projectID, rolloutID string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectSubpath(projectID, "rollouts/"+projectPathSegment(rolloutID)), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -691,7 +691,7 @@ func (a *AdminService) GetProjectRollout(ctx context.Context, projectID, rollout
 }
 
 // UpdateProjectRollout patches one published project rollout.
-func (a *AdminService) UpdateProjectRollout(ctx context.Context, projectID, rolloutID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) UpdateProjectRollout(ctx context.Context, projectID, rolloutID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPatch, projectSubpath(projectID, "rollouts/"+projectPathSegment(rolloutID)), body, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -700,12 +700,12 @@ func (a *AdminService) UpdateProjectRollout(ctx context.Context, projectID, roll
 }
 
 // DeleteProjectRollout deletes one project rollout.
-func (a *AdminService) DeleteProjectRollout(ctx context.Context, projectID, rolloutID string, opts ...RequestOption) error {
+func (a *adminService) DeleteProjectRollout(ctx context.Context, projectID, rolloutID string, opts ...RequestOption) error {
 	return adminRequestJSON(ctx, a.client, http.MethodDelete, projectSubpath(projectID, "rollouts/"+projectPathSegment(rolloutID)), nil, headersFromOptions(opts), nil)
 }
 
 // StopProjectRollout stops one project rollout.
-func (a *AdminService) StopProjectRollout(ctx context.Context, projectID, rolloutID string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) StopProjectRollout(ctx context.Context, projectID, rolloutID string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPost, projectSubpath(projectID, "rollouts/"+projectPathSegment(rolloutID)+"/stop"), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -714,7 +714,7 @@ func (a *AdminService) StopProjectRollout(ctx context.Context, projectID, rollou
 }
 
 // ListProjectRolloutAudits lists audit records for one project rollout.
-func (a *AdminService) ListProjectRolloutAudits(ctx context.Context, projectID, rolloutID string, query map[string]string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) ListProjectRolloutAudits(ctx context.Context, projectID, rolloutID string, query map[string]string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectSubpath(projectID, "rollouts/"+projectPathSegment(rolloutID)+"/audit")+adminQueryString(query), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -723,7 +723,7 @@ func (a *AdminService) ListProjectRolloutAudits(ctx context.Context, projectID, 
 }
 
 // ListProjectPresets lists console sampling presets for a project.
-func (a *AdminService) ListProjectPresets(ctx context.Context, projectID string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) ListProjectPresets(ctx context.Context, projectID string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectSubpath(projectID, "presets"), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -732,7 +732,7 @@ func (a *AdminService) ListProjectPresets(ctx context.Context, projectID string,
 }
 
 // CreateProjectPreset creates a console sampling preset for a project.
-func (a *AdminService) CreateProjectPreset(ctx context.Context, projectID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) CreateProjectPreset(ctx context.Context, projectID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPost, projectSubpath(projectID, "presets"), body, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -741,7 +741,7 @@ func (a *AdminService) CreateProjectPreset(ctx context.Context, projectID string
 }
 
 // UpdateProjectPreset updates a console sampling preset for a project.
-func (a *AdminService) UpdateProjectPreset(ctx context.Context, projectID, presetID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) UpdateProjectPreset(ctx context.Context, projectID, presetID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPut, projectSubpath(projectID, "presets/"+projectPathSegment(presetID)), body, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -750,7 +750,7 @@ func (a *AdminService) UpdateProjectPreset(ctx context.Context, projectID, prese
 }
 
 // PublishProjectPreset publishes a console preset to the project live sample.
-func (a *AdminService) PublishProjectPreset(ctx context.Context, projectID, presetID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) PublishProjectPreset(ctx context.Context, projectID, presetID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPost, projectSubpath(projectID, "presets/"+projectPathSegment(presetID)+"/publish"), body, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -759,7 +759,7 @@ func (a *AdminService) PublishProjectPreset(ctx context.Context, projectID, pres
 }
 
 // ListProjectSessions lists console sessions for a project.
-func (a *AdminService) ListProjectSessions(ctx context.Context, projectID string, query map[string]string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) ListProjectSessions(ctx context.Context, projectID string, query map[string]string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectSubpath(projectID, "sessions")+adminQueryString(query), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -768,7 +768,7 @@ func (a *AdminService) ListProjectSessions(ctx context.Context, projectID string
 }
 
 // UpdateProjectSession archives or unarchives a console session.
-func (a *AdminService) UpdateProjectSession(ctx context.Context, projectID, sessionID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) UpdateProjectSession(ctx context.Context, projectID, sessionID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPatch, projectSubpath(projectID, "sessions/"+projectPathSegment(sessionID)), body, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -777,7 +777,7 @@ func (a *AdminService) UpdateProjectSession(ctx context.Context, projectID, sess
 }
 
 // ListProjectSuites lists evaluation suites for a project.
-func (a *AdminService) ListProjectSuites(ctx context.Context, projectID string, query map[string]string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) ListProjectSuites(ctx context.Context, projectID string, query map[string]string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectSubpath(projectID, "suites")+adminQueryString(query), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -786,7 +786,7 @@ func (a *AdminService) ListProjectSuites(ctx context.Context, projectID string, 
 }
 
 // CreateProjectSuite creates an evaluation suite for a project.
-func (a *AdminService) CreateProjectSuite(ctx context.Context, projectID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) CreateProjectSuite(ctx context.Context, projectID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPost, projectSubpath(projectID, "suites"), body, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -795,7 +795,7 @@ func (a *AdminService) CreateProjectSuite(ctx context.Context, projectID string,
 }
 
 // GetProjectSuite returns one evaluation suite for a project.
-func (a *AdminService) GetProjectSuite(ctx context.Context, projectID, suiteID string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) GetProjectSuite(ctx context.Context, projectID, suiteID string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectSubpath(projectID, "suites/"+projectPathSegment(suiteID)), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -804,7 +804,7 @@ func (a *AdminService) GetProjectSuite(ctx context.Context, projectID, suiteID s
 }
 
 // ListProjectEvaluations lists evaluation runs for a project.
-func (a *AdminService) ListProjectEvaluations(ctx context.Context, projectID string, query map[string]string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) ListProjectEvaluations(ctx context.Context, projectID string, query map[string]string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectSubpath(projectID, "evaluations")+adminQueryString(query), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -813,7 +813,7 @@ func (a *AdminService) ListProjectEvaluations(ctx context.Context, projectID str
 }
 
 // GetProjectEvaluation returns one evaluation run for a project.
-func (a *AdminService) GetProjectEvaluation(ctx context.Context, projectID, evaluationID string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) GetProjectEvaluation(ctx context.Context, projectID, evaluationID string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectSubpath(projectID, "evaluations/"+projectPathSegment(evaluationID)), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -822,7 +822,7 @@ func (a *AdminService) GetProjectEvaluation(ctx context.Context, projectID, eval
 }
 
 // CompareProjectEvaluation compares one evaluation run with another.
-func (a *AdminService) CompareProjectEvaluation(ctx context.Context, projectID, evaluationID string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) CompareProjectEvaluation(ctx context.Context, projectID, evaluationID string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectSubpath(projectID, "evaluations/"+projectPathSegment(evaluationID)+"/compare"), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -831,7 +831,7 @@ func (a *AdminService) CompareProjectEvaluation(ctx context.Context, projectID, 
 }
 
 // CancelProjectEvaluation cancels one evaluation run.
-func (a *AdminService) CancelProjectEvaluation(ctx context.Context, projectID, evaluationID string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) CancelProjectEvaluation(ctx context.Context, projectID, evaluationID string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPost, projectSubpath(projectID, "evaluations/"+projectPathSegment(evaluationID)+"/cancel"), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -840,7 +840,7 @@ func (a *AdminService) CancelProjectEvaluation(ctx context.Context, projectID, e
 }
 
 // ResumeProjectEvaluation resumes one evaluation run.
-func (a *AdminService) ResumeProjectEvaluation(ctx context.Context, projectID, evaluationID string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) ResumeProjectEvaluation(ctx context.Context, projectID, evaluationID string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPost, projectSubpath(projectID, "evaluations/"+projectPathSegment(evaluationID)+"/resume"), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -849,7 +849,7 @@ func (a *AdminService) ResumeProjectEvaluation(ctx context.Context, projectID, e
 }
 
 // ListProjectFeedback lists evaluation feedback for a project.
-func (a *AdminService) ListProjectFeedback(ctx context.Context, projectID string, query map[string]string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) ListProjectFeedback(ctx context.Context, projectID string, query map[string]string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, projectSubpath(projectID, "feedback")+adminQueryString(query), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -858,7 +858,7 @@ func (a *AdminService) ListProjectFeedback(ctx context.Context, projectID string
 }
 
 // CreateProjectFeedback creates evaluation feedback for a project.
-func (a *AdminService) CreateProjectFeedback(ctx context.Context, projectID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) CreateProjectFeedback(ctx context.Context, projectID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPost, projectSubpath(projectID, "feedback"), body, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -868,12 +868,12 @@ func (a *AdminService) CreateProjectFeedback(ctx context.Context, projectID stri
 
 // ProjectEngine proxies a request to the project engine API at
 // /admin/v1/projects/{projectID}/engine/{enginePath}.
-func (a *AdminService) ProjectEngine(ctx context.Context, projectID, method, enginePath string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) ProjectEngine(ctx context.Context, projectID, method, enginePath string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	return a.ProjectRequest(ctx, projectID, method, "engine/"+enginePath, body, opts...)
 }
 
 // ListAdminCards lists all project card metadata visible to an administrator.
-func (a *AdminService) ListAdminCards(ctx context.Context, query map[string]string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) ListAdminCards(ctx context.Context, query map[string]string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, "/cards"+adminQueryString(query), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -883,7 +883,7 @@ func (a *AdminService) ListAdminCards(ctx context.Context, query map[string]stri
 
 // TranslationsQueue returns the current translation queue, optionally filtered
 // by project_id.
-func (a *AdminService) TranslationsQueue(ctx context.Context, query map[string]string, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) TranslationsQueue(ctx context.Context, query map[string]string, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodGet, "/translations/queue"+adminQueryString(query), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
@@ -892,7 +892,7 @@ func (a *AdminService) TranslationsQueue(ctx context.Context, query map[string]s
 }
 
 // TranslationsCallback sends a translation callback body to the engine.
-func (a *AdminService) TranslationsCallback(ctx context.Context, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+func (a *adminService) TranslationsCallback(ctx context.Context, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := adminRequestJSON(ctx, a.client, http.MethodPost, "/translations/callback", body, headersFromOptions(opts), &out); err != nil {
 		return nil, err

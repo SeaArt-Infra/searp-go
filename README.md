@@ -49,10 +49,6 @@ func main() {
 `BaseURL` defaults to `http://127.0.0.1:8788`. The SDK derives the API base as
 `<BaseURL>/v1` unless the base already ends in `/v1`.
 
-The control-plane client is configured separately from the engine API. With a
-custom engine `BaseURL`, `AdminBaseURL` defaults to `<BaseURL>/admin/v1`; with
-the default engine URL it defaults to `http://127.0.0.1:8790/admin/v1`.
-
 ## Services
 
 | Service | Purpose |
@@ -63,7 +59,6 @@ the default engine URL it defaults to `http://127.0.0.1:8790/admin/v1`.
 | `client.Cards` | Role-card CRUD, versions, translations, listing |
 | `client.Versions` | Version preview |
 | `client.Cinema` | Cinema rounds and image tasks |
-| `client.Admin` | Gateway health, identity, projects, and project live settings |
 
 ## Chat Turn
 
@@ -107,35 +102,10 @@ for event := range events {
 }
 ```
 
-## Control Plane
-
-```go
-health, err := client.Admin.Health(ctx)
-whoami, err := client.Admin.Whoami(ctx)
-projects, err := client.Admin.ListProjects(ctx)
-project, err := client.Admin.GetProject(ctx, "project-id")
-live, err := client.Admin.UpdateProjectLive(ctx, "project-id", rp.JSONMap{
-	"model":             "your-model",
-	"expected_revision": 3,
-})
-```
-
-`Admin.Request` exposes the full `/admin/v1` surface for endpoints that do not
-have a typed method yet:
-
-```go
-result, err := client.Admin.Request(ctx, http.MethodPost, "/projects/pack/fork", rp.JSONMap{
-	"project_id": "project-id",
-})
-```
-
-Admin error responses follow `{"error":{"code":"...","message":"..."}}`; the
-SDK exposes the envelope code as `*rp.Error.Code`.
-
 ## Error Handling
 
-The engine reports plain-text HTTP errors and the control plane reports a
-structured error envelope. Inspect `*rp.Error` at request boundaries:
+The engine reports plain-text HTTP errors. Inspect `*rp.Error` at request
+boundaries:
 
 ```go
 _, err := client.Sessions.Get(ctx, "missing", rp.SessionGetQuery{})

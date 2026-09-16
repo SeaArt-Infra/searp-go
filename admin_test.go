@@ -6,55 +6,35 @@ import (
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/SeaArt-Infra/searp-go/internal/transport"
 )
 
-func TestNew_DefaultAdminBaseURL(t *testing.T) {
-	client, err := New(&ClientConfig{APIKey: "test-key"})
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if client.adminBaseURL != defaultAdminBaseURL {
-		t.Fatalf("unexpected adminBaseURL: %s", client.adminBaseURL)
-	}
-}
-
-func TestNew_DerivesAdminBaseFromBaseURL(t *testing.T) {
-	client, err := New(&ClientConfig{
-		APIKey:  "test-key",
-		BaseURL: "https://engine.example.com/",
-	})
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if client.adminBaseURL != "https://engine.example.com/admin/v1" {
-		t.Fatalf("unexpected adminBaseURL: %s", client.adminBaseURL)
-	}
-}
-
-func newAdminTestClient(t *testing.T, handler http.HandlerFunc) (*httptest.Server, *Client) {
+func newAdminTestService(t *testing.T, handler http.HandlerFunc) (*httptest.Server, *adminService) {
 	t.Helper()
 	srv := httptest.NewServer(handler)
 	t.Cleanup(srv.Close)
-	client, err := New(&ClientConfig{
-		APIKey:       "test-key",
-		AdminBaseURL: srv.URL,
-		Timeout:      5 * time.Second,
-	})
-	if err != nil {
-		t.Fatalf("failed to create admin test client: %v", err)
+	service := &adminService{client: &transport.Client{
+		APIKey:     "test-key",
+		BaseURL:    srv.URL,
+		UserAgent:  "searp-go/test",
+		HTTPClient: &http.Client{Timeout: 5 * time.Second},
+	}}
+	if service.client == nil {
+		t.Fatal("failed to create admin test service")
 	}
-	return srv, client
+	return srv, service
 }
 
 func TestAdminService_Health(t *testing.T) {
-	_, client := newAdminTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+	_, service := newAdminTestService(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet || r.URL.Path != "/health" {
 			t.Fatalf("unexpected request: %s %s", r.Method, r.URL.Path)
 		}
 		writeJSON(w, 200, JSONMap{"ok": true})
 	})
 
-	result, err := client.Admin.Health(context.Background())
+	result, err := service.Health(context.Background())
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -64,7 +44,7 @@ func TestAdminService_Health(t *testing.T) {
 }
 
 func TestAdminService_RequestAndProjectPaths(t *testing.T) {
-	_, client := newAdminTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+	_, service := newAdminTestService(t, func(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case r.Method == http.MethodGet && r.URL.Path == "/projects":
 			writeJSON(w, 200, JSONMap{"items": []any{}})
@@ -75,10 +55,10 @@ func TestAdminService_RequestAndProjectPaths(t *testing.T) {
 		}
 	})
 
-	if _, err := client.Admin.ListProjects(context.Background()); err != nil {
+	if _, err := service.ListProjects(context.Background()); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	project, err := client.Admin.GetProject(context.Background(), "a/b")
+	project, err := service.GetProject(context.Background(), "a/b")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -88,11 +68,11 @@ func TestAdminService_RequestAndProjectPaths(t *testing.T) {
 }
 
 func TestAdminService_ErrorEnvelope(t *testing.T) {
-	_, client := newAdminTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+	_, service := newAdminTestService(t, func(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, 409, JSONMap{"error": JSONMap{"code": "conflict", "message": "revision mismatch"}})
 	})
 
-	_, err := client.Admin.UpdateProjectLive(context.Background(), "p1", JSONMap{})
+	_, err := service.UpdateProjectLive(context.Background(), "p1", JSONMap{})
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
@@ -106,7 +86,7 @@ func TestAdminService_ErrorEnvelope(t *testing.T) {
 }
 
 func TestAdminService_ProjectAndCatalogPaths(t *testing.T) {
-	_, client := newAdminTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+	_, service := newAdminTestService(t, func(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case r.Method == http.MethodGet && r.URL.EscapedPath() == "/projects/p1/versions" && r.URL.Query().Get("cursor") == "2":
 			writeJSON(w, 200, JSONMap{"items": []any{}})
@@ -120,13 +100,13 @@ func TestAdminService_ProjectAndCatalogPaths(t *testing.T) {
 		}
 	})
 
-	if _, err := client.Admin.ListProjectVersions(context.Background(), "p1", map[string]string{"cursor": "2"}); err != nil {
+	if _, err := service.ListProjectVersions(context.Background(), "p1", map[string]string{"cursor": "2"}); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if _, err := client.Admin.DiffProjectVersion(context.Background(), "p1", "v1", "v0"); err != nil {
+	if _, err := service.DiffProjectVersion(context.Background(), "p1", "v1", "v0"); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	cover, err := client.Admin.GetCatalogCardCover(context.Background(), "card-1")
+	cover, err := service.GetCatalogCardCover(context.Background(), "card-1")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

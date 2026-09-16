@@ -1,5 +1,4 @@
-// Package rp is the official Go client for the SeaRP engine and control-plane
-// HTTP APIs.
+// Package rp is the official Go client for the SeaRP engine HTTP API.
 //
 // Import it as:
 //

@@ -1,6 +1,6 @@
 ---
 name: searp-go
-description: Build and troubleshoot SeaRP engine and control-plane integrations with the searp-go client. Use when creating role-play sessions, running chat turns or streaming replies, using idempotent operations, importing cards, previewing versions, assembling prompts, generating images, debugging chats, or managing projects through the /admin/v1 gateway from Go.
+description: Build and troubleshoot SeaRP engine integrations with the searp-go client. Use when creating role-play sessions, running chat turns or streaming replies, using idempotent operations, importing cards, previewing versions, assembling prompts, generating images, or debugging chats from Go.
 ---
 
 # SeaRP Go SDK
@@ -20,28 +20,12 @@ go get github.com/SeaArt-Infra/searp-go
 2. Use `client.Sessions` for sessions and turns; `client.Operations` for paid,
    idempotent generation; `client.Engine` for models, generations, assemble,
    and debug chat; `client.Cards`, `client.Versions`, and `client.Cinema` for
-   their routes. Use `client.Admin` for the `/admin/v1` control plane.
+   their routes.
 3. Prefer `POST /v1/sessions/{id}/operations` with a stable idempotency key for
    chat generation; reuse the same key for retries.
 4. HTTP 200 does not guarantee a generated reply. Check the operation `status`;
    an SSE stream must receive `done` and may also receive `error`.
 5. Pass request-specific SeaInfra attribution headers with `rp.WithHeaders`.
-
-## Control Plane
-
-```go
-health, err := client.Admin.Health(ctx)
-whoami, err := client.Admin.Whoami(ctx)
-projects, err := client.Admin.ListProjects(ctx)
-project, err := client.Admin.CreateProject(ctx, rp.JSONMap{
-	"id":    "project-id",
-	"token": "project-token-with-at-least-16-characters",
-})
-```
-
-For control-plane routes without a typed method, use
-`client.Admin.Request(ctx, method, path, body, opts...)`. Admin errors carry
-their envelope `code` in `*rp.Error.Code`.
 
 ## Initialize Client
 
@@ -57,24 +41,9 @@ if err != nil {
 
 ## Create A Session
 
-Create from the current published version:
-
 ```go
 session, err := client.Sessions.CreateExperience(ctx, rp.JSONMap{
 	"user_id": "user-123",
-})
-```
-
-Create a playground session from a role request:
-
-```go
-session, err := client.Sessions.Create(ctx, rp.JSONMap{
-	"user_id": "user-123",
-	"request": rp.JSONMap{
-		"character": rp.JSONMap{"name": "Ada", "gender": 2},
-		"style":     1,
-		"lang":      "en",
-	},
 })
 ```
 
@@ -86,44 +55,14 @@ op, err := client.Operations.Run(ctx, session.ID, rp.JSONMap{
 	"action":            "reply",
 	"text":              "Hello.",
 	"expected_revision": session.Revision,
-}, rp.WithHeaders(http.Header{
-	"x-infra-project-id": {projectID},
-	"x-infra-user-id":    {userID},
-	"x-request-id":       {requestID},
-}))
-if err != nil {
-	log.Fatal(err)
-}
-```
-
-For streaming, call `client.Sessions.TurnStream` and stop on `done`:
-
-```go
-events, err := client.Sessions.TurnStream(ctx, session.ID, rp.JSONMap{
-	"action": "reply",
-	"text":   "Hello.",
-	"stream": true,
 })
-if err != nil {
-	log.Fatal(err)
-}
-for event := range events {
-	if event.Err != nil {
-		log.Fatal(event.Err)
-	}
-	if event.Done {
-		break
-	}
-	if event.Event == "token" {
-		fmt.Print(string(event.Data))
-	}
-}
 ```
+
+For streaming, use `client.Sessions.TurnStream` and stop on `done`.
 
 ## Errors
 
-Catch `*rp.Error` at the request boundary and branch on `Kind` where retry or
-user feedback differs. `rp.ErrConflict` usually means a stale
+Catch `*rp.Error` and branch on `Kind`. `rp.ErrConflict` usually means a stale
 `expected_revision` or an idempotency key reused with different input.
 
 ## Route Reference
@@ -140,43 +79,3 @@ user feedback differs. `rp.ErrConflict` usually means a stale
 - `Versions.Preview`
 - `Cinema.ListRounds`, `CreateRound`, `CreateRoundStream`, `GetRound`,
   `GetImageTask`, `GenerateImageTask`, `SaveImageResult`
-- `Admin.Request`, `Health`, `Whoami`, `AgentContract`, `ListProjects`,
-  `CreateProject`, `GetProject`, `DeleteProject`, `RotateProjectToken`,
-  `GetProjectLive`, `UpdateProjectLive`
-- `Admin.Raw`, `ProjectRequest`, `GetGlobalPack`, `UpdateGlobalPack`,
-  `GetProjectPack`, `PatchProjectPack`, `DeleteProjectPack`, `ForkProjectPack`
-- `Admin.ListCatalog`, `ImportCatalog`, `GetCatalogCard`, `UpdateCatalogCard`,
-  `DeleteCatalogCard`, `GetCatalogCardCover`
-- `Admin.ListProjectCards`, `GetProjectCard`, `UpdateProjectCard`,
-  `DeleteProjectCard`, `SetProjectCardListing`, `ImportProjectCard`,
-  `ImportProjectCardsBatch`, `ForkProjectCard`, `ListProjectCardVersions`,
-  `GetProjectCardVersion`, `DeleteProjectCardVersion`,
-  `RestoreProjectCardVersion`
-- `Admin.ListProjectExperiments`, `CreateProjectExperiment`,
-  `GetProjectExperiment`, `UpdateProjectExperiment`, `StartProjectExperiment`,
-  `PauseProjectExperiment`, `StopProjectExperiment`
-- `Admin.GetProjectLLM`, `UpdateProjectLLM`, `DeleteProjectLLM`
-- `Admin.ListProjectVersions`, `CreateProjectVersion`, `GetProjectVersion`,
-  `DiffProjectVersion`, `PublishProjectVersion`, `GetProjectRelease`,
-  `ListProjectReleases`, `RollbackProjectRelease`
-- `Admin.ListProjectSystemPrompts`, `CreateProjectSystemPrompt`,
-  `SetProjectSystemPromptDefault`, `GetProjectSystemPrompt`,
-  `UpdateProjectSystemPrompt`, `ListGlobalSystemPrompts`,
-  `CreateGlobalSystemPrompt`, `SetGlobalSystemPromptDefault`,
-  `GetGlobalSystemPrompt`
-- `Admin.ListProjectUserSessions`, `GetProjectUserSession`,
-  `GetProjectIdentityMigration`, `StartProjectIdentityMigration`,
-  `PrepareProjectIdentityMigration`, `PurgeProjectIdentityMigration`,
-  `AdoptProjectIdentityMigration`, `RevertProjectIdentityMigration`,
-  `PreviewProjectIdentityMigration`
-- `Admin.ListProjectRollouts`, `CreateProjectRollout`,
-  `GetCurrentProjectRollouts`, `GetProjectRollout`, `UpdateProjectRollout`,
-  `DeleteProjectRollout`, `StopProjectRollout`, `ListProjectRolloutAudits`
-- `Admin.ListProjectPresets`, `CreateProjectPreset`, `UpdateProjectPreset`,
-  `PublishProjectPreset`, `ListProjectSessions`, `UpdateProjectSession`
-- `Admin.ListProjectSuites`, `CreateProjectSuite`, `GetProjectSuite`,
-  `ListProjectEvaluations`, `GetProjectEvaluation`,
-  `CompareProjectEvaluation`, `CancelProjectEvaluation`,
-  `ResumeProjectEvaluation`, `ListProjectFeedback`, `CreateProjectFeedback`
-- `Admin.ProjectEngine`, `ListAdminCards`, `TranslationsQueue`,
-  `TranslationsCallback`
