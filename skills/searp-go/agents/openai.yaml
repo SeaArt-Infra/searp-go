@@ -1,0 +1,4 @@
+interface:
+  display_name: "SeaRP Go SDK"
+  short_description: "Build SeaRP engine API integrations in Go"
+  default_prompt: "Use $searp-go to implement a SeaRP engine SDK integration."
