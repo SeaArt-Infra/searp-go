@@ -19,7 +19,7 @@ func TestSessionService_Create(t *testing.T) {
 	})
 	defer srv.Close()
 
-	session, err := client.Sessions.Create(context.Background(), JSONMap{"user_id": "u1", "request": JSONMap{}})
+	session, err := client.Sessions.Create(context.Background(), JSONMap{"user_id": "u1", "card_id": "c1"})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

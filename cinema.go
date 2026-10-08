@@ -12,15 +12,21 @@ type CinemaService struct {
 }
 
 // ListRounds lists a session's cinema rounds.
-func (c *CinemaService) ListRounds(ctx context.Context, sessionID string, opts ...RequestOption) (JSONMap, error) {
-	var out JSONMap
-	if err := requestJSON(ctx, c.client, "GET", cinemaSessionPath(sessionID)+"/rounds", nil, headersFromOptions(opts), &out); err != nil {
+func (c *CinemaService) ListRounds(ctx context.Context, sessionID string, opts ...RequestOption) ([]JSONMap, error) {
+	return c.ListRoundsWithQuery(ctx, sessionID, SessionGetQuery{}, opts...)
+}
+
+// ListRoundsWithQuery pages public snapshots (default limit 10, maximum 100).
+func (c *CinemaService) ListRoundsWithQuery(ctx context.Context, sessionID string, query SessionGetQuery, opts ...RequestOption) ([]JSONMap, error) {
+	var out []JSONMap
+	if err := requestJSON(ctx, c.client, "GET", cinemaSessionPath(sessionID)+"/rounds"+queryString(query), nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// CreateRound creates a cinema round. Set stream=true for SSE.
+// CreateRound creates a cinema round and decodes its JSON result.
+// Use CreateRoundStream for SSE.
 func (c *CinemaService) CreateRound(ctx context.Context, sessionID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := requestJSON(ctx, c.client, "POST", cinemaSessionPath(sessionID)+"/rounds", body, headersFromOptions(opts), &out); err != nil {
@@ -71,5 +77,5 @@ func (c *CinemaService) SaveImageResult(ctx context.Context, taskID string, body
 }
 
 func cinemaSessionPath(sessionID string) string {
-	return "/sessions/" + sessionID + "/cinema"
+	return sessionPath(sessionID) + "/cinema"
 }

@@ -103,7 +103,7 @@ func (e *Error) Error() string {
 
 func statusText(status int) string {
 	switch status {
-	case 400:
+	case 400, 422:
 		return "bad request"
 	case 401:
 		return "unauthorized"

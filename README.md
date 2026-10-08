@@ -39,10 +39,11 @@ func main() {
 	ctx := context.Background()
 	session, err := client.Sessions.Create(ctx, rp.JSONMap{
 		"user_id": "visitor-1",
-		"request": rp.JSONMap{
-			"character": rp.JSONMap{"name": "Ada", "gender": 2},
-			"style":     1,
-			"lang":      "en",
+		"card_info": rp.JSONMap{
+			"name": "Ada", "gender": 2, "lang": "en",
+			"introduction": "Port pilot",
+			"greeting": "Welcome to the fog harbor.",
+			"background": "Knows the tides and shipping lanes.",
 		},
 	}, rp.WithHeader("x-request-id", "request-1"))
 	if err != nil {
@@ -55,9 +56,13 @@ func main() {
 `BaseURL` defaults to `http://127.0.0.1:8788`. The SDK derives the API base as
 `<BaseURL>/v1` unless the base already ends in `/v1`.
 
-`Sessions.Create` is the general way to create a playground, card, or version
-session. `Sessions.CreateExperience` is only for projects that have already
-published an experience version.
+`Sessions.Create` accepts `card_id`, inline `card_info`, or `version_id`.
+Use `Engine.DebugChat` for temporary card/sampling configurations;
+`request` and sampling fields are rejected by `Sessions.Create`.
+`Sessions.CreateExperience` opens the currently published experience version.
+
+See [API reference](API_REFERENCE.md) for all routes, pagination, translations,
+multimodal input, per-turn parameters, and migration notes.
 
 ## Services
 
@@ -150,7 +155,7 @@ for event := range events {
 
 ## Error Handling
 
-The engine reports plain-text HTTP errors. Inspect `*rp.Error` at request
+The engine reports plain-text or JSON errors. Inspect `*rp.Error` at request
 boundaries:
 
 ```go
@@ -236,16 +241,19 @@ if err != nil {
 ```go
 session, err := client.Sessions.Create(ctx, rp.JSONMap{
 	"user_id": "user-123",
-	"request": rp.JSONMap{
-		"character": rp.JSONMap{"name": "Ada", "gender": 2},
-		"style":     1,
-		"lang":      "en",
+	"card_info": rp.JSONMap{
+		"name": "Ada", "gender": 2, "lang": "en",
+		"introduction": "Port pilot",
+		"greeting": "Welcome to the fog harbor.",
+		"background": "Knows the tides and shipping lanes.",
 	},
 })
 ```
 
-Use `client.Sessions.CreateExperience` only when the project has already
-published an experience version.
+Use `card_id`, `card_info`, or `version_id` with `Sessions.Create`;
+use `Engine.DebugChat` with `card_info` for temporary sampling/configuration.
+`Sessions.Create` rejects a nested `request`.
+Use `client.Sessions.CreateExperience` for the currently published version.
 
 ## Run A Reply
 
@@ -270,13 +278,14 @@ Catch `*rp.Error` and branch on `Kind`. `rp.ErrConflict` usually means a stale
 - `Sessions.Create`, `CreateExperience`, `Get`, `HistoryMessage`, `Turn`,
   `TurnStream`, `Patch`, `Rewind`, `Fork`, `Edit`
 - `Operations.Run`, `Get`, `List`, `Recover`, `Traces`
-- `Engine.Health`, `Capabilities`, `Models`, `LLMStatus`, `LLMCheck`,
+- `Engine.Health`, `Live`, `Metrics`, `Capabilities`, `Models`, `LLMStatus`, `LLMCheck`,
   `GenerationModels`, `CreateGeneration`, `GetGeneration`, `Assemble`,
   `DebugChat`, `DebugChatStream`
 - `Cards.List`, `Create`, `Get`, `Update`, `Delete`, `Import`, `SetListing`,
   `ListVersions`, `GetVersion`, `DeleteVersion`, `UpdateTranslation`,
-  `RestoreVersion`, `ListByUser`
+  `ListVersionsWithQuery`, `GetVersionWithQuery`, `RestoreVersionWithBody`,
+  `ListTranslations`, `SaveTranslations`, `ImportBatch`, `ListByUser`
 - `Versions.Preview`
-- `Cinema.ListRounds`, `CreateRound`, `CreateRoundStream`, `GetRound`,
+- `Cinema.ListRounds`, `ListRoundsWithQuery`, `CreateRound`, `CreateRoundStream`, `GetRound`,
   `GetImageTask`, `GenerateImageTask`, `SaveImageResult`
 </script>

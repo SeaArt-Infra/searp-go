@@ -14,12 +14,33 @@ type EngineService struct {
 }
 
 // Health returns the engine health snapshot from GET /v1/health.
-func (e *EngineService) Health(ctx context.Context) (JSONMap, error) {
+func (e *EngineService) Health(ctx context.Context, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
-	if err := requestJSON(ctx, e.client, "GET", "/health", nil, nil, &out); err != nil {
+	if err := requestJSON(ctx, e.client, "GET", "/health", nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
 	}
 	return out, nil
+}
+
+// Live returns liveness without checking dependencies (unlike Health).
+func (e *EngineService) Live(ctx context.Context, opts ...RequestOption) (JSONMap, error) {
+	var out JSONMap
+	if err := requestJSON(ctx, e.client, "GET", "/live", nil, headersFromOptions(opts), &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Metrics returns the engine's Prometheus text exposition.
+func (e *EngineService) Metrics(ctx context.Context, opts ...RequestOption) (string, error) {
+	status, payload, err := e.client.Request(ctx, "GET", "/metrics", nil, headersFromOptions(opts))
+	if err != nil {
+		return "", publicError(err)
+	}
+	if err := parseRawResponse(status, payload); err != nil {
+		return "", err
+	}
+	return string(payload), nil
 }
 
 // Capabilities returns the engine capability and default-sample snapshot.
@@ -94,7 +115,7 @@ func (e *EngineService) Assemble(ctx context.Context, body JSONMap, opts ...Requ
 	return &out, nil
 }
 
-// DebugChat performs a stateless card debug chat. The request body controls
+// DebugChat performs a card debug chat (persist=true by default). The body controls
 // whether the session/history is persisted; SSE is available by setting
 // stream=true or Accept: text/event-stream.
 func (e *EngineService) DebugChat(ctx context.Context, body JSONMap, opts ...RequestOption) (JSONMap, error) {
@@ -105,7 +126,7 @@ func (e *EngineService) DebugChat(ctx context.Context, body JSONMap, opts ...Req
 	return out, nil
 }
 
-// DebugChatStream performs a streaming stateless card debug chat.
+// DebugChatStream performs a streaming card debug chat.
 func (e *EngineService) DebugChatStream(ctx context.Context, body JSONMap, opts ...RequestOption) (<-chan StreamEvent, error) {
 	return streamJSON(ctx, e.client, "POST", "/debug/chat", body, headersFromOptions(opts))
 }

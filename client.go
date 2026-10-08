@@ -42,9 +42,11 @@ type ClientConfig struct {
 	APIKey     string
 	BaseURL    string
 	APIBaseURL string
-	Headers    http.Header
-	HTTPClient *http.Client
-	Timeout    time.Duration
+	// ControlAPIBaseURL is the full /admin/v1 base used by Cards.ImportBatch.
+	ControlAPIBaseURL string
+	Headers           http.Header
+	HTTPClient        *http.Client
+	Timeout           time.Duration
 }
 
 // New creates a Client from an explicit ClientConfig.
@@ -87,6 +89,14 @@ func New(cfg *ClientConfig) (*Client, error) {
 	client.Operations = &OperationService{client: newService()}
 	client.Engine = &EngineService{client: newService()}
 	client.Cards = &CardsService{client: newService()}
+	if cfg.ControlAPIBaseURL != "" {
+		controlBase, err := normalizeURL(cfg.ControlAPIBaseURL)
+		if err != nil {
+			return nil, err
+		}
+		client.Cards.controlClient = newService()
+		client.Cards.controlClient.BaseURL = controlBase
+	}
 	client.Versions = &VersionsService{client: newService()}
 	client.Cinema = &CinemaService{client: newService()}
 	return client, nil

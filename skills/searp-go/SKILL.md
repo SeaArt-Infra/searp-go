@@ -44,16 +44,19 @@ if err != nil {
 ```go
 session, err := client.Sessions.Create(ctx, rp.JSONMap{
 	"user_id": "user-123",
-	"request": rp.JSONMap{
-		"character": rp.JSONMap{"name": "Ada", "gender": 2},
-		"style":     1,
-		"lang":      "en",
+	"card_info": rp.JSONMap{
+		"name": "Ada", "gender": 2, "lang": "en",
+		"introduction": "Port pilot",
+		"greeting": "Welcome to the fog harbor.",
+		"background": "Knows the tides and shipping lanes.",
 	},
 })
 ```
 
-Use `client.Sessions.CreateExperience` only when the project has already
-published an experience version.
+Use `card_id`, `card_info`, or `version_id` with `Sessions.Create`;
+use `Engine.DebugChat` with `card_info` for temporary sampling/configuration.
+`Sessions.Create` rejects a nested `request`.
+Use `client.Sessions.CreateExperience` for the currently published version.
 
 ## Run A Reply
 
@@ -78,12 +81,13 @@ Catch `*rp.Error` and branch on `Kind`. `rp.ErrConflict` usually means a stale
 - `Sessions.Create`, `CreateExperience`, `Get`, `HistoryMessage`, `Turn`,
   `TurnStream`, `Patch`, `Rewind`, `Fork`, `Edit`
 - `Operations.Run`, `Get`, `List`, `Recover`, `Traces`
-- `Engine.Health`, `Capabilities`, `Models`, `LLMStatus`, `LLMCheck`,
+- `Engine.Health`, `Live`, `Metrics`, `Capabilities`, `Models`, `LLMStatus`, `LLMCheck`,
   `GenerationModels`, `CreateGeneration`, `GetGeneration`, `Assemble`,
   `DebugChat`, `DebugChatStream`
 - `Cards.List`, `Create`, `Get`, `Update`, `Delete`, `Import`, `SetListing`,
   `ListVersions`, `GetVersion`, `DeleteVersion`, `UpdateTranslation`,
-  `RestoreVersion`, `ListByUser`
+  `ListVersionsWithQuery`, `GetVersionWithQuery`, `RestoreVersionWithBody`,
+  `ListTranslations`, `SaveTranslations`, `ImportBatch`, `ListByUser`
 - `Versions.Preview`
-- `Cinema.ListRounds`, `CreateRound`, `CreateRoundStream`, `GetRound`,
+- `Cinema.ListRounds`, `ListRoundsWithQuery`, `CreateRound`, `CreateRoundStream`, `GetRound`,
   `GetImageTask`, `GenerateImageTask`, `SaveImageResult`

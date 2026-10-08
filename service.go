@@ -28,6 +28,10 @@ func requestJSON(ctx context.Context, c *transport.Client, method, path string, 
 }
 
 func streamJSON(ctx context.Context, c *transport.Client, method, path string, body any, headers http.Header) (<-chan StreamEvent, error) {
+	if headers == nil {
+		headers = make(http.Header)
+	}
+	headers.Set("Accept", "text/event-stream")
 	resp, err := c.RequestStream(ctx, method, path, body, headers)
 	if err != nil {
 		return nil, publicError(err)
@@ -45,7 +49,7 @@ func streamJSON(ctx context.Context, c *transport.Client, method, path string, b
 	go func() {
 		defer close(ch)
 		transport.StreamResponse(ctx, resp, func(ctx context.Context, event *transport.StreamEvent) bool {
-			out := StreamEvent{Event: event.Event}
+			out := StreamEvent{ID: event.ID, Event: event.Event}
 			if event.Err != nil {
 				out.Err = publicError(event.Err)
 			}

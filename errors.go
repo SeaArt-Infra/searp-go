@@ -1,6 +1,9 @@
 package rp
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 const (
 	ErrAuth     = "auth"
@@ -17,10 +20,12 @@ const (
 // The engine returns plain-text error bodies and uses HTTP status codes as its
 // public error contract, so Status is the primary machine-readable field.
 type Error struct {
-	Kind    string
-	Code    string
-	Message string
-	Status  int
+	Payload   JSONMap
+	SessionID string
+	Kind      string
+	Code      string
+	Message   string
+	Status    int
 }
 
 func (e *Error) Error() string {
@@ -38,9 +43,20 @@ func newHTTPError(status int, message string) *Error {
 }
 
 func newHTTPErrorWithCode(status int, code, message string) *Error {
+	var payload JSONMap
+	if json.Unmarshal([]byte(message), &payload) == nil {
+		if envelope, ok := payload["error"].(map[string]any); ok {
+			if value, ok := envelope["code"].(string); ok {
+				code = value
+			}
+			if value, ok := envelope["message"].(string); ok {
+				message = value
+			}
+		}
+	}
 	kind := ErrGeneral
 	switch status {
-	case 400:
+	case 400, 422:
 		kind = ErrInvalid
 	case 401, 403:
 		kind = ErrAuth
@@ -53,5 +69,6 @@ func newHTTPErrorWithCode(status int, code, message string) *Error {
 	case 408, 504:
 		kind = ErrTimeout
 	}
-	return &Error{Kind: kind, Code: code, Status: status, Message: message}
+	sessionID, _ := payload["session_id"].(string)
+	return &Error{Kind: kind, Code: code, Status: status, Message: message, Payload: payload, SessionID: sessionID}
 }

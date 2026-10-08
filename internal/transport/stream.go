@@ -11,6 +11,7 @@ import (
 
 // StreamEvent is the transport-level SSE event representation.
 type StreamEvent struct {
+	ID    string
 	Event string
 	Data  []byte
 	Done  bool
@@ -23,13 +24,14 @@ func StreamResponse(ctx context.Context, resp *http.Response, emit func(ctx cont
 	defer resp.Body.Close()
 	reader := bufio.NewReader(resp.Body)
 	eventName := ""
+	eventID := ""
 	dataLines := make([]string, 0, 4)
 
 	flush := func() bool {
 		if len(dataLines) == 0 && eventName == "" {
 			return true
 		}
-		event := &StreamEvent{Event: eventName, Data: []byte(strings.Join(dataLines, "\n"))}
+		event := &StreamEvent{ID: eventID, Event: eventName, Data: []byte(strings.Join(dataLines, "\n"))}
 		eventName = ""
 		dataLines = dataLines[:0]
 		if string(event.Data) == "[DONE]" {
@@ -44,12 +46,12 @@ func StreamResponse(ctx context.Context, resp *http.Response, emit func(ctx cont
 
 	for {
 		line, err := reader.ReadString('\n')
-		if err != nil {
-			if errors.Is(err, io.EOF) {
-				flush()
-				return
-			}
+		if err != nil && !errors.Is(err, io.EOF) {
 			emit(ctx, &StreamEvent{Err: &Error{Kind: "network", Message: "stream read failed: " + err.Error()}})
+			return
+		}
+		if len(line) == 0 && errors.Is(err, io.EOF) {
+			flush()
 			return
 		}
 		line = strings.TrimRight(line, "\r\n")
@@ -64,9 +66,18 @@ func StreamResponse(ctx context.Context, resp *http.Response, emit func(ctx cont
 		}
 		switch {
 		case strings.HasPrefix(line, "event:"):
-			eventName = strings.TrimSpace(line[len("event:"):])
+			eventName = strings.TrimPrefix(line[len("event:"):], " ")
 		case strings.HasPrefix(line, "data:"):
-			dataLines = append(dataLines, strings.TrimSpace(line[len("data:"):]))
+			dataLines = append(dataLines, strings.TrimPrefix(line[len("data:"):], " "))
+		case strings.HasPrefix(line, "id:"):
+			value := strings.TrimPrefix(line[len("id:"):], " ")
+			if !strings.ContainsRune(value, '\x00') {
+				eventID = value
+			}
+		}
+		if errors.Is(err, io.EOF) {
+			flush()
+			return
 		}
 	}
 }

@@ -13,7 +13,8 @@ type SessionService struct {
 	client *transport.Client
 }
 
-// Create creates a playground, card, or version session with POST /v1/sessions.
+// Create creates a card_id, inline card_info, or version_id session.
+// Debug request/sampling configurations belong to Engine.DebugChat.
 func (s *SessionService) Create(ctx context.Context, body JSONMap, opts ...RequestOption) (*SessionSnapshot, error) {
 	var out SessionSnapshot
 	if err := requestJSON(ctx, s.client, "POST", "/sessions", body, headersFromOptions(opts), &out); err != nil {
@@ -109,7 +110,7 @@ type SessionGetQuery struct {
 }
 
 func sessionPath(id string) string {
-	return "/sessions/" + id
+	return "/sessions/" + url.PathEscape(id)
 }
 
 func uintString(value uint64) string {

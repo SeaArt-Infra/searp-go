@@ -14,6 +14,7 @@ type RawResponse = json.RawMessage
 
 // StreamEvent is one parsed server-sent event from a streaming endpoint.
 type StreamEvent struct {
+	ID    string
 	Event string
 	Data  RawResponse
 	Done  bool
@@ -31,8 +32,21 @@ func Decode[T any](raw RawResponse) (*T, error) {
 
 // Message is one chat message in history or in the assembled model envelope.
 type Message struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
+	Role string `json:"role"`
+	// Content is a string for text or an OpenAI content-part array for images.
+	Content any `json:"content"`
+}
+
+// ContentPart is one text or image_url part in a multimodal message.
+type ContentPart struct {
+	Type     string    `json:"type"`
+	Text     string    `json:"text,omitempty"`
+	ImageURL *ImageURL `json:"image_url,omitempty"`
+}
+
+type ImageURL struct {
+	URL    string `json:"url"`
+	Detail string `json:"detail,omitempty"`
 }
 
 // Character is the character card block inside a render request.
@@ -56,7 +70,7 @@ type User struct {
 	Dislike string `json:"dislike"`
 }
 
-// Request is the stateless render/playground request bound into a session.
+// Request is a stateless render configuration or a debug-session snapshot.
 type Request struct {
 	Character              Character `json:"character"`
 	User                   User      `json:"user"`
@@ -78,11 +92,13 @@ type Request struct {
 // Rendered is the rendered prompt envelope returned by assemble and snapshot
 // responses.
 type Rendered struct {
-	SkeletonKey             string `json:"skeleton_key"`
-	Lang                    string `json:"lang"`
-	SystemPrompt            string `json:"system_prompt"`
-	OutputInstruction       string `json:"output_instruction"`
-	ConversationStylePrompt string `json:"conversation_style_prompt"`
+	User                    string   `json:"user,omitempty"`
+	Warnings                []string `json:"warnings,omitempty"`
+	SkeletonKey             string   `json:"skeleton_key"`
+	Lang                    string   `json:"lang"`
+	SystemPrompt            string   `json:"system_prompt"`
+	OutputInstruction       string   `json:"output_instruction"`
+	ConversationStylePrompt string   `json:"conversation_style_prompt"`
 }
 
 // SessionSample is the model sampling snapshot pinned by a session.
@@ -110,6 +126,7 @@ type Branch struct {
 // SessionSnapshot is the JSON session body returned by create, get, and JSON
 // turn endpoints.
 type SessionSnapshot struct {
+	PromptRedacted   bool           `json:"prompt_redacted,omitempty"`
 	SystemTemplateID string         `json:"system_template_id"`
 	ID               string         `json:"id"`
 	ProjectID        string         `json:"project_id"`
@@ -141,21 +158,23 @@ type HistoryMessage struct {
 	Index   uint64 `json:"index"`
 	Total   uint64 `json:"total"`
 	Role    string `json:"role"`
-	Content string `json:"content"`
+	Content any    `json:"content"`
 }
 
 // AssembleResponse is the response returned by POST /v1/assemble.
 type AssembleResponse struct {
-	Prompt       Rendered  `json:"prompt"`
-	Messages     []Message `json:"messages"`
-	PromptTokens uint64    `json:"prompt_tokens"`
+	PromptRedacted bool      `json:"prompt_redacted,omitempty"`
+	Prompt         Rendered  `json:"prompt"`
+	Messages       []Message `json:"messages"`
+	PromptTokens   uint64    `json:"prompt_tokens"`
 }
 
 // TurnResponse is the non-streaming response returned by POST /v1/sessions/{id}/turns.
 type TurnResponse struct {
 	SessionSnapshot
-	Execution AssembleResponse `json:"execution"`
-	Usage     *json.RawMessage `json:"usage"`
+	HistoryImport json.RawMessage  `json:"history_import,omitempty"`
+	Execution     AssembleResponse `json:"execution"`
+	Usage         *json.RawMessage `json:"usage"`
 }
 
 // PublicModel is a chat or multimodal model returned by the engine catalog.
