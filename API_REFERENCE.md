@@ -1,6 +1,6 @@
 # SeaRP API reference
 
-Synced with the SeaRP engine and project batch-import contract on 2026-10-08.
+Synced with the SeaRP engine and project batch-import contract on 2026-10-14.
 Paths below are relative to the engine `/v1` base; batch import uses `/admin/v1`.
 
 ## Routes
@@ -25,6 +25,7 @@ Paths below are relative to the engine `/v1` base; batch import uses `/admin/v1`
 | PATCH | `/sessions/{id}` | `Sessions.Patch` |
 | GET | `/sessions/{id}/history/{index}` | `Sessions.HistoryMessage` |
 | POST | `/sessions/{id}/turns` | `Sessions.Turn / TurnStream` |
+| POST | `/sessions/{id}/proactive` | `Sessions.Proactive / ProactiveStream` |
 | POST | `/sessions/{id}/rewind` | `Sessions.Rewind` |
 | POST | `/sessions/{id}/fork` | `Sessions.Fork` |
 | POST | `/sessions/{id}/edit` | `Sessions.Edit` |
@@ -79,6 +80,10 @@ request options. Keep project credentials on the caller's server.
   optional `expected_revision`, sampling, memory, `user`, `lang`,
   `system_prompt_override`, `lastest_system_prompt` (keep this spelling),
   `favorability_score` (-1..100), and `metadata.history`.
+- Proactive takes a required `idempotency_key`, optional `expected_revision`,
+  sampling, memory and per-call prompt fields, and never accepts user input;
+  use `ProactiveStream` for the same SSE operation/token/usage/done events as
+  turns.
 - Operations take `idempotency_key`, `action`, `text` or `message`,
   `expected_revision` and `metadata` at the top level. Put model,
   temperature, max_tokens, user and request overrides under `live`; put
@@ -208,4 +213,3 @@ as string and content arrays as `[]any`. Use a type switch when reading.
 For outgoing images, use `[]ContentPart` with `ImageURL`.
 `StreamEvent.ID` retains the SSE ID. Errors expose `Payload` and
 `SessionID` as well as Code/Message/Status.
-

@@ -85,6 +85,56 @@ func TestSessionService_TurnStream(t *testing.T) {
 	}
 }
 
+func TestSessionService_Proactive(t *testing.T) {
+	_, client := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost || r.URL.Path != "/sessions/session-1/proactive" {
+			t.Fatalf("unexpected request: %s %s", r.Method, r.URL.Path)
+		}
+		var body map[string]any
+		_ = json.NewDecoder(r.Body).Decode(&body)
+		if body["idempotency_key"] != "proactive-1" {
+			t.Fatalf("unexpected body: %v", body)
+		}
+		writeJSON(w, 200, map[string]any{
+			"id": "session-1", "revision": 3, "text": "Hello again!",
+			"operation": map[string]any{"id": "proactive-1"},
+		})
+	})
+
+	response, err := client.Sessions.Proactive(context.Background(), "session-1", JSONMap{"idempotency_key": "proactive-1"})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if response.Revision != 3 || response.Text != "Hello again!" || response.Operation["id"] != "proactive-1" {
+		t.Fatalf("unexpected proactive response: %+v", response)
+	}
+}
+
+func TestSessionService_ProactiveStream(t *testing.T) {
+	_, client := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/sessions/session-1/proactive" {
+			t.Fatalf("unexpected path: %s", r.URL.Path)
+		}
+		w.Header().Set("Content-Type", "text/event-stream")
+		_, _ = w.Write([]byte("event: operation\ndata: {\"id\":\"proactive-1\"}\n\nevent: token\ndata: Hi\n\nevent: done\ndata: session-1\\nHi\n\n"))
+	})
+
+	events, err := client.Sessions.ProactiveStream(context.Background(), "session-1", JSONMap{"idempotency_key": "proactive-1", "stream": true})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	var names []string
+	for event := range events {
+		if event.Err != nil {
+			t.Fatalf("unexpected stream error: %v", event.Err)
+		}
+		names = append(names, event.Event)
+	}
+	if got := len(names); got != 3 || names[0] != "operation" || names[1] != "token" || names[2] != "done" {
+		t.Fatalf("unexpected events: %v", names)
+	}
+}
+
 func TestSessionService_ErrorBody(t *testing.T) {
 	_, client := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "session not found", http.StatusNotFound)

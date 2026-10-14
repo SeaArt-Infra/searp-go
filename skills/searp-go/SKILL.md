@@ -17,7 +17,7 @@ go get github.com/SeaArt-Infra/searp-go
 ## Workflow
 
 1. Create one `rp.Client` with the project bearer token and reuse it.
-2. Use `client.Sessions` for sessions and turns; `client.Operations` for paid,
+2. Use `client.Sessions` for sessions, turns, and idempotent proactive messages; `client.Operations` for paid,
    idempotent generation; `client.Engine` for models, generations, assemble,
    and debug chat; `client.Cards`, `client.Versions`, and `client.Cinema` for
    their routes.
@@ -79,7 +79,7 @@ Catch `*rp.Error` and branch on `Kind`. `rp.ErrConflict` usually means a stale
 ## Route Reference
 
 - `Sessions.Create`, `CreateExperience`, `Get`, `HistoryMessage`, `Turn`,
-  `TurnStream`, `Patch`, `Rewind`, `Fork`, `Edit`
+  `TurnStream`, `Proactive`, `ProactiveStream`, `Patch`, `Rewind`, `Fork`, `Edit`
 - `Operations.Run`, `Get`, `List`, `Recover`, `Traces`
 - `Engine.Health`, `Live`, `Metrics`, `Capabilities`, `Models`, `LLMStatus`, `LLMCheck`,
   `GenerationModels`, `CreateGeneration`, `GetGeneration`, `Assemble`,

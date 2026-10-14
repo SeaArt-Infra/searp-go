@@ -68,7 +68,7 @@ multimodal input, per-turn parameters, and migration notes.
 
 | Service | Purpose |
 | --- | --- |
-| `client.Sessions` | Playground, card, and version sessions; history; turns; rewind/fork/edit |
+| `client.Sessions` | Playground, card, and version sessions; turns and proactive messages; history; rewind/fork/edit |
 | `client.Operations` | Idempotent paid operations, recovery, and local traces |
 | `client.Engine` | Health, capabilities, models, LLM checks, generations, assemble, debug chat |
 | `client.Cards` | Role-card CRUD, versions, translations, listing |
@@ -151,6 +151,20 @@ for event := range events {
 		fmt.Print(string(event.Data))
 	}
 }
+```
+
+Use `client.Sessions.Proactive` for an idempotent character-initiated message
+without user input, or `ProactiveStream` for SSE:
+
+```go
+proactive, err := client.Sessions.Proactive(ctx, session.ID, rp.JSONMap{
+	"idempotency_key": "proactive-001",
+	"expected_revision": session.Revision,
+})
+if err != nil {
+	log.Fatal(err)
+}
+fmt.Println(proactive.Text)
 ```
 
 ## Error Handling
@@ -276,7 +290,7 @@ Catch `*rp.Error` and branch on `Kind`. `rp.ErrConflict` usually means a stale
 ## Route Reference
 
 - `Sessions.Create`, `CreateExperience`, `Get`, `HistoryMessage`, `Turn`,
-  `TurnStream`, `Patch`, `Rewind`, `Fork`, `Edit`
+  `TurnStream`, `Proactive`, `ProactiveStream`, `Patch`, `Rewind`, `Fork`, `Edit`
 - `Operations.Run`, `Get`, `List`, `Recover`, `Traces`
 - `Engine.Health`, `Live`, `Metrics`, `Capabilities`, `Models`, `LLMStatus`, `LLMCheck`,
   `GenerationModels`, `CreateGeneration`, `GetGeneration`, `Assemble`,

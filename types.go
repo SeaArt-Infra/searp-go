@@ -177,6 +177,16 @@ type TurnResponse struct {
 	Usage         *json.RawMessage `json:"usage"`
 }
 
+// ProactiveResponse is the non-streaming response returned by
+// POST /v1/sessions/{id}/proactive.
+type ProactiveResponse struct {
+	SessionSnapshot
+	Execution AssembleResponse `json:"execution"`
+	Usage     *json.RawMessage `json:"usage"`
+	Text      string           `json:"text"`
+	Operation JSONMap          `json:"operation"`
+}
+
 // PublicModel is a chat or multimodal model returned by the engine catalog.
 type PublicModel struct {
 	Model       string   `json:"model"`

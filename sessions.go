@@ -67,6 +67,22 @@ func (s *SessionService) TurnStream(ctx context.Context, id string, body JSONMap
 	return streamJSON(ctx, s.client, "POST", sessionPath(id)+"/turns", body, headersFromOptions(opts))
 }
 
+// Proactive runs an idempotent character-initiated assistant message without
+// adding a user input. The body must include idempotency_key.
+func (s *SessionService) Proactive(ctx context.Context, id string, body JSONMap, opts ...RequestOption) (*ProactiveResponse, error) {
+	var out ProactiveResponse
+	if err := requestJSON(ctx, s.client, "POST", sessionPath(id)+"/proactive", body, headersFromOptions(opts), &out); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ProactiveStream runs an idempotent character-initiated assistant message
+// and returns parsed SSE events.
+func (s *SessionService) ProactiveStream(ctx context.Context, id string, body JSONMap, opts ...RequestOption) (<-chan StreamEvent, error) {
+	return streamJSON(ctx, s.client, "POST", sessionPath(id)+"/proactive", body, headersFromOptions(opts))
+}
+
 // Patch updates non-version session sampling or request settings.
 func (s *SessionService) Patch(ctx context.Context, id string, body JSONMap, opts ...RequestOption) (*SessionSnapshot, error) {
 	var out SessionSnapshot
