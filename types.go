@@ -187,6 +187,30 @@ type ProactiveResponse struct {
 	Operation JSONMap          `json:"operation"`
 }
 
+// InspirationReply is one suggested next user message.
+type InspirationReply struct {
+	Style string `json:"style"`
+	Text  string `json:"text"`
+}
+
+// InspirationResponse preserves suggestions and provider-reported evidence.
+type InspirationResponse struct {
+	Replies        []InspirationReply `json:"replies"`
+	Model          string             `json:"model"`
+	Usage          *json.RawMessage   `json:"usage"`
+	ProviderID     *string            `json:"provider_id"`
+	FinishReason   *string            `json:"finish_reason"`
+	FailedAttempts []JSONMap          `json:"failed_attempts,omitempty"`
+}
+
+// GroupTurnResponse extends the ordinary turn envelope with operation evidence
+// and the group record, including segments and parser warnings.
+type GroupTurnResponse struct {
+	TurnResponse
+	Operation JSONMap `json:"operation"`
+	Turn      JSONMap `json:"turn"`
+}
+
 // PublicModel is a chat or multimodal model returned by the engine catalog.
 type PublicModel struct {
 	Model       string   `json:"model"`
@@ -199,10 +223,12 @@ type PublicModel struct {
 
 // Generation is a SeaInfra multimodal generation task.
 type Generation struct {
-	ID     string `json:"id"`
-	Status string `json:"status"`
-	Model  string `json:"model"`
-	Output any    `json:"output,omitempty"`
+	ID     string           `json:"id"`
+	Status string           `json:"status"`
+	Model  string           `json:"model"`
+	Output any              `json:"output,omitempty"`
+	Usage  *json.RawMessage `json:"usage,omitempty"`
+	Error  json.RawMessage  `json:"error,omitempty"`
 }
 
 func (e *Error) Unwrap() error { return nil }

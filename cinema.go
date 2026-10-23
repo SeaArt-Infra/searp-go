@@ -2,6 +2,7 @@ package rp
 
 import (
 	"context"
+	"net/url"
 
 	"github.com/SeaArt-Infra/searp-go/internal/transport"
 )
@@ -20,6 +21,38 @@ func (c *CinemaService) ListRounds(ctx context.Context, sessionID string, opts .
 func (c *CinemaService) ListRoundsWithQuery(ctx context.Context, sessionID string, query SessionGetQuery, opts ...RequestOption) ([]JSONMap, error) {
 	var out []JSONMap
 	if err := requestJSON(ctx, c.client, "GET", cinemaSessionPath(sessionID)+"/rounds"+queryString(query), nil, headersFromOptions(opts), &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// CinemaRoundQuery controls pagination. Order changes where offset counts from;
+// response arrays remain in ascending sequence order.
+type CinemaRoundQuery struct {
+	Limit  *uint64
+	Offset *uint64
+	Order  string
+}
+
+// ListRoundsWithOrder supports order=desc for fetching the most recent rounds.
+// ListRoundsWithQuery remains available for existing pagination-only callers.
+func (c *CinemaService) ListRoundsWithOrder(ctx context.Context, sessionID string, query CinemaRoundQuery, opts ...RequestOption) ([]JSONMap, error) {
+	values := url.Values{}
+	if query.Limit != nil {
+		values.Set("limit", uintString(*query.Limit))
+	}
+	if query.Offset != nil {
+		values.Set("offset", uintString(*query.Offset))
+	}
+	if query.Order != "" {
+		values.Set("order", query.Order)
+	}
+	path := cinemaSessionPath(sessionID) + "/rounds"
+	if len(values) > 0 {
+		path += "?" + values.Encode()
+	}
+	var out []JSONMap
+	if err := requestJSON(ctx, c.client, "GET", path, nil, headersFromOptions(opts), &out); err != nil {
 		return nil, err
 	}
 	return out, nil

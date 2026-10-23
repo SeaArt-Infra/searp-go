@@ -25,12 +25,14 @@ type Client struct {
 	headers    http.Header
 	httpClient *http.Client
 
-	Sessions   *SessionService
-	Operations *OperationService
-	Engine     *EngineService
-	Cards      *CardsService
-	Versions   *VersionsService
-	Cinema     *CinemaService
+	Sessions      *SessionService
+	Operations    *OperationService
+	Engine        *EngineService
+	Cards         *CardsService
+	Versions      *VersionsService
+	Cinema        *CinemaService
+	GroupCards    *GroupCardsService
+	GroupSessions *GroupSessionsService
 }
 
 // ClientConfig configures a Client.
@@ -42,7 +44,7 @@ type ClientConfig struct {
 	APIKey     string
 	BaseURL    string
 	APIBaseURL string
-	// ControlAPIBaseURL is the full /admin/v1 base used by Cards.ImportBatch.
+	// ControlAPIBaseURL is the full /admin/v1 base used by Cards.Fork and legacy ImportBatch.
 	ControlAPIBaseURL string
 	Headers           http.Header
 	HTTPClient        *http.Client
@@ -99,6 +101,8 @@ func New(cfg *ClientConfig) (*Client, error) {
 	}
 	client.Versions = &VersionsService{client: newService()}
 	client.Cinema = &CinemaService{client: newService()}
+	client.GroupCards = &GroupCardsService{client: newService()}
+	client.GroupSessions = &GroupSessionsService{client: newService()}
 	return client, nil
 }
 

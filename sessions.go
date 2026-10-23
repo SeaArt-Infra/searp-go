@@ -83,6 +83,20 @@ func (s *SessionService) ProactiveStream(ctx context.Context, id string, body JS
 	return streamJSON(ctx, s.client, "POST", sessionPath(id)+"/proactive", body, headersFromOptions(opts))
 }
 
+// Inspiration generates two player reply suggestions without changing history
+// or revision. An empty body is valid; this endpoint is JSON-only and has no
+// idempotency key, so retries call the model again.
+func (s *SessionService) Inspiration(ctx context.Context, id string, body JSONMap, opts ...RequestOption) (*InspirationResponse, error) {
+	if body == nil {
+		body = JSONMap{}
+	}
+	var out InspirationResponse
+	if err := requestJSON(ctx, s.client, "POST", sessionPath(id)+"/inspiration", body, headersFromOptions(opts), &out); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // Patch updates non-version session sampling or request settings.
 func (s *SessionService) Patch(ctx context.Context, id string, body JSONMap, opts ...RequestOption) (*SessionSnapshot, error) {
 	var out SessionSnapshot

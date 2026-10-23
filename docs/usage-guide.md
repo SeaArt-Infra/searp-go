@@ -14,24 +14,22 @@ client, err := rp.New(&rp.ClientConfig{
 	Headers: http.Header{
 		"x-fixed-header": {"fixed-value"},
 	},
-	Timeout: 120 * time.Second,
+	Timeout: 300 * time.Second,
 })
 ```
 
 ## Session Lifecycle
 
-Create a playground, card, or version session with `client.Sessions.Create`:
+Create a card or version session with `client.Sessions.Create`:
 
 ```go
 session, err := client.Sessions.Create(ctx, rp.JSONMap{
 	"user_id": "user-123",
-	"request": rp.JSONMap{
-		"character": rp.JSONMap{"name": "Ada", "gender": 2},
-		"style":     1,
-		"lang":      "en",
+	"card_info": rp.JSONMap{
+		"name": "Ada", "gender": 2, "lang": "en",
+		"introduction": "Port pilot", "greeting": "Welcome to the harbor.",
+		"background": "Knows the tides and shipping lanes.",
 	},
-	"max_context":   16000,
-	"pinned_memory": "Keep the lamp lit.",
 })
 ```
 
@@ -69,6 +67,33 @@ Reuse the same key for retries; changing input under an existing key returns a
 conflict.
 
 ## Models, Assemble, And Debug
+
+For temporary request/sampling configuration, use `Engine.DebugChat`;
+`Sessions.Create` rejects nested `request` and sampling fields.
+
+## Group Chat And Suggestions
+
+Use `GroupCards` for story cards and rosters, `GroupSessions.Create` for a
+session pinned to a group version, and `GroupSessions.Turn` / `TurnStream`
+for generation. Pass `Idempotency-Key` with `WithHeader` for safe retries.
+`GroupTurnResponse` exposes the updated session revision, operation and group
+record. Members are soft-deleted with a body containing `user_id` and
+`expected_latest_version`. Read all group history through `Sessions.Get`.
+
+`Sessions.Inspiration(ctx, id, JSONMap{"lang": "zh"})` generates positive and
+neutral player suggestions without modifying history. It is JSON-only and
+each retry calls the model again. `Cards.Untranslated` and
+`Cards.ForkTranslations` expose translation completeness and reuse.
+
+`Cinema.ListRoundsWithOrder` takes `CinemaRoundQuery{Order: "desc"}` for the
+latest rounds; existing pagination-only methods remain compatible.
+
+`Cards.Create` is deprecated with a documented sunset of 2027-01-01.
+Configure `ControlAPIBaseURL` and use `Cards.Fork` to copy catalog cards into a
+project. See API_REFERENCE.md for differences between import documentation
+and registered release handlers.
+
+## Models, Assemble, And Debug Examples
 
 ```go
 models, _ := client.Engine.Models(ctx)

@@ -3,6 +3,7 @@ package rp
 import (
 	"context"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/SeaArt-Infra/searp-go/internal/transport"
@@ -17,12 +18,63 @@ type CardsService struct {
 // ImportBatch imports 1..100 project cards using the Control API and the same
 // project bearer token. body is {cards: [...]} (rows is a supported alias).
 // Successful earlier cards are retained if a later card fails.
+// Deprecated: retained for older deployments; current release onboarding uses Fork.
 func (c *CardsService) ImportBatch(ctx context.Context, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	if c.controlClient == nil {
 		return nil, &Error{Kind: ErrInvalid, Message: "Cards.ImportBatch requires ClientConfig.ControlAPIBaseURL (full /admin/v1 base)"}
 	}
 	var out JSONMap
 	if err := requestJSON(ctx, c.controlClient, "POST", "/cards/import/batch", body, headersFromOptions(opts), &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Fork copies 1..100 catalog_ids into the project using the explicitly
+// configured Control API. Inspect items and errors even when HTTP is 200.
+func (c *CardsService) Fork(ctx context.Context, projectID string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+	if c.controlClient == nil {
+		return nil, &Error{Kind: ErrInvalid, Message: "Cards.Fork requires ClientConfig.ControlAPIBaseURL (full /admin/v1 base)"}
+	}
+	var out JSONMap
+	if err := requestJSON(ctx, c.controlClient, "POST", "/projects/"+url.PathEscape(projectID)+"/cards/fork", body, headersFromOptions(opts), &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// UntranslatedCardsQuery filters incomplete translations of latest cards.
+type UntranslatedCardsQuery struct {
+	Locale         string
+	Limit          *uint64
+	Offset         *uint64
+	IncludePartial *bool
+}
+
+// Untranslated lists cards missing translations; summary describes this page.
+func (c *CardsService) Untranslated(ctx context.Context, query UntranslatedCardsQuery, opts ...RequestOption) (JSONMap, error) {
+	values := url.Values{"locale": {query.Locale}}
+	if query.Limit != nil {
+		values.Set("limit", uintString(*query.Limit))
+	}
+	if query.Offset != nil {
+		values.Set("offset", uintString(*query.Offset))
+	}
+	if query.IncludePartial != nil {
+		values.Set("include_partial", strconv.FormatBool(*query.IncludePartial))
+	}
+	var out JSONMap
+	if err := requestJSON(ctx, c.client, "GET", "/cards/untranslated?"+values.Encode(), nil, headersFromOptions(opts), &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// ForkTranslations copies stored catalog translations using {items:[{card_id,
+// card_version,locales}]}. Partial failures appear in the response errors array.
+func (c *CardsService) ForkTranslations(ctx context.Context, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+	var out JSONMap
+	if err := requestJSON(ctx, c.client, "POST", "/cards/translations/fork", body, headersFromOptions(opts), &out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -53,6 +105,8 @@ func (c *CardsService) List(ctx context.Context, query CardQuery, opts ...Reques
 }
 
 // Create creates or reuses a card.
+// Deprecated: POST /v1/cards is scheduled to sunset on 2027-01-01.
+// Use Import for delegated imports or Fork for catalog cards.
 func (c *CardsService) Create(ctx context.Context, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := requestJSON(ctx, c.client, "POST", "/cards", body, headersFromOptions(opts), &out); err != nil {
@@ -84,7 +138,9 @@ func (c *CardsService) Delete(ctx context.Context, id string, opts ...RequestOpt
 	return requestJSON(ctx, c.client, "DELETE", "/cards/"+id, nil, headersFromOptions(opts), nil)
 }
 
-// Import imports one card: {card: {...}, overwrite: false}.
+// Import passes through one delegated import payload. The current release
+// handler accepts {card: {...}, overwrite?: false}; some docs instead show row.
+// This engine endpoint requires a short-lived project delegation token.
 func (c *CardsService) Import(ctx context.Context, body JSONMap, opts ...RequestOption) (JSONMap, error) {
 	var out JSONMap
 	if err := requestJSON(ctx, c.client, "POST", "/cards/import", body, headersFromOptions(opts), &out); err != nil {

@@ -64,6 +64,47 @@ Use `Engine.DebugChat` for temporary card/sampling configurations;
 See [API reference](API_REFERENCE.md) for all routes, pagination, translations,
 multimodal input, per-turn parameters, and migration notes.
 
+## Release API update
+
+Aligned with SeaRP release API docs `af4e254` on 2026-10-23. The SDK now
+covers group story cards and sessions, player inspiration suggestions, missing
+translation queries, translation reuse, catalog fork and Cinema order.
+
+```go
+suggestions, err := client.Sessions.Inspiration(ctx, session.ID, rp.JSONMap{"lang": "zh"})
+if err != nil {
+    log.Fatal(err)
+}
+fmt.Println(suggestions.Replies)
+```
+
+```go
+group, err := client.GroupSessions.Create(ctx, rp.JSONMap{
+    "group_id": groupID, "user_id": "visitor-1", "mode": "group_chat",
+})
+if err != nil {
+    log.Fatal(err)
+}
+turn, err := client.GroupSessions.Turn(ctx, group.ID, rp.JSONMap{
+    "content": "Hello everyone.", "expected_revision": group.Revision,
+}, rp.WithHeader("Idempotency-Key", "group-turn-001"))
+if err != nil {
+    log.Fatal(err)
+}
+fmt.Println(turn.Revision, turn.Turn["segments"])
+```
+
+Use `client.GroupSessions.TurnStream` for group SSE.
+Handle segment events, errors and disconnects; only done confirms completion.
+Inspiration changes no history and calls the model again on each retry.
+
+`POST /v1/cards` is deprecated and scheduled to sunset on 2027-01-01.
+The role-card creation example below remains for existing integrations.
+For catalog cards, configure `ControlAPIBaseURL` and call
+`client.Cards.Fork` with a project ID and `catalog_ids`; inspect
+both `items` and `errors`. See [API reference](API_REFERENCE.md) for route
+coverage, import-document differences, group request fields and recovery.
+
 ## Services
 
 | Service | Purpose |
@@ -74,8 +115,10 @@ multimodal input, per-turn parameters, and migration notes.
 | `client.Cards` | Role-card CRUD, versions, translations, listing |
 | `client.Versions` | Version preview |
 | `client.Cinema` | Cinema rounds and image tasks |
+| `client.GroupCards` | Group story cards, versions, members and translations |
+| `client.GroupSessions` | Group session creation, JSON/SSE turns and prompt records |
 
-## Role Card Session
+## Legacy Role Card Creation
 
 Create a role card with `client.Cards.Create`, then open a session from that
 card:
@@ -228,7 +271,7 @@ go get github.com/SeaArt-Infra/searp-go
 ## Workflow
 
 1. Create one `rp.Client` with the project bearer token and reuse it.
-2. Use `client.Sessions` for sessions and turns; `client.Operations` for paid,
+2. Use `client.Sessions` for sessions, turns, and idempotent proactive messages; `client.Operations` for paid,
    idempotent generation; `client.Engine` for models, generations, assemble,
    and debug chat; `client.Cards`, `client.Versions`, and `client.Cinema` for
    their routes.
@@ -287,10 +330,39 @@ For streaming, use `client.Sessions.TurnStream` and stop on `done`.
 Catch `*rp.Error` and branch on `Kind`. `rp.ErrConflict` usually means a stale
 `expected_revision` or an idempotency key reused with different input.
 
+## Release API additions (2026-10-23)
+
+Use `client.GroupCards` for story cards, immutable versions, members,
+imports, preview and translations. Use `client.GroupSessions` for creating group
+sessions, generating JSON/SSE turns, querying turn records and prompts.
+Member removals require a JSON body with `user_id` and
+`expected_latest_version`. Group generation takes `content` and supports a
+stable `Idempotency-Key` header; preserve the key and original input on retry.
+JSON responses include the flattened session revision and group `turn.segments`.
+The shared SSE parser also exposes `segment_*` and `parser_warning` events.
+Read history through the ordinary session get method.
+
+`client.Sessions.Inspiration` returns positive/neutral player reply
+suggestions. It accepts an empty body or per-call language and sampling,
+changes no history/revision, and has no SSE or idempotency. Every retry calls
+the model again. `client.Cards.Untranslated` queries missing
+translations; `ForkTranslations` copies existing catalog translations.
+Check per-item errors even when HTTP is 200.
+
+Card creation is deprecated with sunset 2027-01-01; existing create examples
+are for compatibility. Use catalog fork with `catalog_ids` and an explicit
+Control API base for onboarding published cards. Legacy batch-import is kept
+for older deployments. Consult API_REFERENCE.md for import payload differences
+between the release documents and registered handlers.
+Cinema lists support descending offset order; returned arrays remain sorted
+by ascending sequence. Recover abandon always needs
+`acknowledge_unknown: true`; use operation revision for recovery and session
+revision for generation. Terminal operation evidence defaults to 7 hours.
+
 ## Route Reference
 
 - `Sessions.Create`, `CreateExperience`, `Get`, `HistoryMessage`, `Turn`,
-  `TurnStream`, `Proactive`, `ProactiveStream`, `Patch`, `Rewind`, `Fork`, `Edit`
+  `TurnStream`, `Proactive`, `ProactiveStream`, `Inspiration`, `Patch`, `Rewind`, `Fork`, `Edit`
 - `Operations.Run`, `Get`, `List`, `Recover`, `Traces`
 - `Engine.Health`, `Live`, `Metrics`, `Capabilities`, `Models`, `LLMStatus`, `LLMCheck`,
   `GenerationModels`, `CreateGeneration`, `GetGeneration`, `Assemble`,
@@ -302,4 +374,8 @@ Catch `*rp.Error` and branch on `Kind`. `rp.ErrConflict` usually means a stale
 - `Versions.Preview`
 - `Cinema.ListRounds`, `ListRoundsWithQuery`, `CreateRound`, `CreateRoundStream`, `GetRound`,
   `GetImageTask`, `GenerateImageTask`, `SaveImageResult`
+
+- `Cards.Untranslated`, `ForkTranslations`, `Fork`
+- `GroupCards`: CRUD, listing, versions, roster, characters, preview, import, translations
+- `GroupSessions`: create, turn, turn stream, get turn, prompt
 </script>
