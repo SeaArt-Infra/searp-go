@@ -46,14 +46,36 @@ func (c *CardsService) Fork(ctx context.Context, projectID string, body JSONMap,
 // UntranslatedCardsQuery filters incomplete translations of latest cards.
 type UntranslatedCardsQuery struct {
 	Locale         string
+	CardIDs        []string
+	Locales        []string
+	Languages      []string
+	Fields         []string
 	Limit          *uint64
 	Offset         *uint64
 	IncludePartial *bool
+	MissingOnly    *bool
+	Q              string
+	IncludeTotal   *bool
 }
 
 // Untranslated lists cards missing translations; summary describes this page.
 func (c *CardsService) Untranslated(ctx context.Context, query UntranslatedCardsQuery, opts ...RequestOption) (JSONMap, error) {
-	values := url.Values{"locale": {query.Locale}}
+	values := url.Values{}
+	if query.Locale != "" {
+		values.Set("locale", query.Locale)
+	}
+	if len(query.CardIDs) > 0 {
+		values.Set("card_ids", strings.Join(query.CardIDs, ","))
+	}
+	if len(query.Locales) > 0 {
+		values.Set("locales", strings.Join(query.Locales, ","))
+	}
+	if len(query.Languages) > 0 {
+		values.Set("languages", strings.Join(query.Languages, ","))
+	}
+	if len(query.Fields) > 0 {
+		values.Set("fields", strings.Join(query.Fields, ","))
+	}
 	if query.Limit != nil {
 		values.Set("limit", uintString(*query.Limit))
 	}
@@ -63,8 +85,31 @@ func (c *CardsService) Untranslated(ctx context.Context, query UntranslatedCards
 	if query.IncludePartial != nil {
 		values.Set("include_partial", strconv.FormatBool(*query.IncludePartial))
 	}
+	if query.MissingOnly != nil {
+		values.Set("missing_only", strconv.FormatBool(*query.MissingOnly))
+	}
+	if query.Q != "" {
+		values.Set("q", query.Q)
+	}
+	if query.IncludeTotal != nil {
+		values.Set("include_total", strconv.FormatBool(*query.IncludeTotal))
+	}
+	path := "/cards/untranslated"
+	if encoded := values.Encode(); encoded != "" {
+		path += "?" + encoded
+	}
 	var out JSONMap
-	if err := requestJSON(ctx, c.client, "GET", "/cards/untranslated?"+values.Encode(), nil, headersFromOptions(opts), &out); err != nil {
+	if err := requestJSON(ctx, c.client, "GET", path, nil, headersFromOptions(opts), &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Translate asks the service to fill missing fields for a card by calling its
+// configured translation model. Existing/manual translations are preserved.
+func (c *CardsService) Translate(ctx context.Context, id string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+	var out JSONMap
+	if err := requestJSON(ctx, c.client, "POST", "/cards/"+url.PathEscape(id)+"/translate", body, headersFromOptions(opts), &out); err != nil {
 		return nil, err
 	}
 	return out, nil

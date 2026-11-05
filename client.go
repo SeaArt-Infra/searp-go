@@ -33,6 +33,7 @@ type Client struct {
 	Cinema        *CinemaService
 	GroupCards    *GroupCardsService
 	GroupSessions *GroupSessionsService
+	WorldBooks    *WorldBookService
 }
 
 // ClientConfig configures a Client.
@@ -103,6 +104,7 @@ func New(cfg *ClientConfig) (*Client, error) {
 	client.Cinema = &CinemaService{client: newService()}
 	client.GroupCards = &GroupCardsService{client: newService()}
 	client.GroupSessions = &GroupSessionsService{client: newService()}
+	client.WorldBooks = &WorldBookService{client: newService()}
 	return client, nil
 }
 

@@ -151,6 +151,57 @@ func TestReleaseInspirationAndTranslationQueries(t *testing.T) {
 	}
 }
 
+func TestReleaseWorldBooksCustomTaskAndTranslationUpdates(t *testing.T) {
+	_, client := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/cards/untranslated" {
+			if r.URL.Query().Get("card_ids") != "c1,c2" || r.URL.Query().Get("locales") != "zh,ja" || r.URL.Query().Get("missing_only") != "true" {
+				t.Errorf("untranslated query: %s", r.URL.RawQuery)
+			}
+		} else if r.URL.Path == "/sessions/s1/custom-task" {
+			if r.Method != "POST" {
+				t.Errorf("custom task method: %s", r.Method)
+			}
+		} else if r.URL.Path == "/cards/c1/translate" {
+			if r.Method != "POST" {
+				t.Errorf("translate method: %s", r.Method)
+			}
+		} else if r.URL.Path == "/world-books" && r.Method == "DELETE" {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		writeJSON(w, 200, JSONMap{"books": []JSONMap{}, "items": []JSONMap{}})
+	})
+	ctx := context.Background()
+	missing := true
+	if _, err := client.Cards.Untranslated(ctx, UntranslatedCardsQuery{CardIDs: []string{"c1", "c2"}, Locales: []string{"zh", "ja"}, MissingOnly: &missing}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := client.Cards.Translate(ctx, "c1", JSONMap{"lang": "zh"}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := client.Sessions.CustomTask(ctx, "s1", JSONMap{"pe": "summarize", "model": "m1"}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := client.WorldBooks.List(ctx, WorldBookQuery{}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := client.WorldBooks.Create(ctx, JSONMap{"title": "Lore"}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := client.WorldBooks.Get(ctx, "book/1"); err != nil {
+		t.Fatal(err)
+	}
+	if err := client.WorldBooks.Delete(ctx, "book/1"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := client.WorldBooks.CatalogList(ctx, WorldBookQuery{}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := client.WorldBooks.CatalogGet(ctx, "book/1"); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestReleaseCatalogForkAndGenerationEvidence(t *testing.T) {
 	srv, _ := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/admin/v1/projects/project-1/cards/fork" {

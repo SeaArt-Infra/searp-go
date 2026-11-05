@@ -113,6 +113,7 @@ coverage, import-document differences, group request fields and recovery.
 | `client.Operations` | Idempotent paid operations, recovery, and local traces |
 | `client.Engine` | Health, capabilities, models, LLM checks, generations, assemble, debug chat |
 | `client.Cards` | Role-card CRUD, versions, translations, listing |
+| `client.WorldBooks` | Project and catalog world books |
 | `client.Versions` | Version preview |
 | `client.Cinema` | Cinema rounds and image tasks |
 | `client.GroupCards` | Group story cards, versions, members and translations |
@@ -370,7 +371,9 @@ revision for generation. Terminal operation evidence defaults to 7 hours.
 - `Cards.List`, `Create`, `Get`, `Update`, `Delete`, `Import`, `SetListing`,
   `ListVersions`, `GetVersion`, `DeleteVersion`, `UpdateTranslation`,
   `ListVersionsWithQuery`, `GetVersionWithQuery`, `RestoreVersionWithBody`,
-  `ListTranslations`, `SaveTranslations`, `ImportBatch`, `ListByUser`
+  `ListTranslations`, `SaveTranslations`, `Translate`, `Untranslated`, `ImportBatch`, `ListByUser`
+- `Sessions.CustomTask`
+- `WorldBooks`: list, create, get, delete, catalog list/get
 - `Versions.Preview`
 - `Cinema.ListRounds`, `ListRoundsWithQuery`, `CreateRound`, `CreateRoundStream`, `GetRound`,
   `GetImageTask`, `GenerateImageTask`, `SaveImageResult`

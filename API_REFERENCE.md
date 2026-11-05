@@ -1,6 +1,6 @@
 # SeaRP API reference
 
-Synced on 2026-10-23 against the SeaRP release API docs at `af4e254`:
+Synced on 2026-11-05 against the SeaRP service at `87c36f3`:
 `docs/searp-api.md`, `docs/card-import-api.md` and the card creation migration
 guide. Paths below are relative to engine `/v1` unless marked Control API.
 Documentation/route differences are recorded below.
@@ -59,7 +59,9 @@ Documentation/route differences are recorded below.
 | POST | `/cinema/image-tasks/{task_id}/generate` | `Cinema.GenerateImageTask` |
 | POST | `/cinema/image-tasks/{task_id}/result` | `Cinema.SaveImageResult` |
 | POST | `/sessions/{id}/inspiration` | `Sessions.Inspiration` |
+| POST | `/sessions/{id}/custom-task` | `Sessions.CustomTask` |
 | GET | `/cards/untranslated` | `Cards.Untranslated` |
+| POST | `/cards/{id}/translate` | `Cards.Translate` |
 | POST | `/cards/translations/fork` | `Cards.ForkTranslations` |
 | POST | `/admin/v1/projects/{project_id}/cards/fork` | `Cards.Fork (Control API)` |
 | GET | `/group-cards` | `GroupCards.List` |
@@ -83,6 +85,10 @@ Documentation/route differences are recorded below.
 | POST | `/sessions/{id}/group/turns` | `GroupSessions.Turn / TurnStream` |
 | GET | `/sessions/{id}/group/turns/{turn_id}` | `GroupSessions.GetTurn` |
 | GET | `/sessions/{id}/group/prompt` | `GroupSessions.Prompt` |
+| GET/POST | `/world-books` | `WorldBooks.List / Create` |
+| GET/DELETE | `/world-books/{id}` | `WorldBooks.Get / Delete` |
+| GET | `/catalog/world-books` | `WorldBooks.CatalogList` |
+| GET | `/catalog/world-books/{id}` | `WorldBooks.CatalogGet` |
 
 ## Requests and current contract
 
@@ -268,9 +274,21 @@ there is no idempotency or SSE variant. Thinking parameters, persona/card
 fields and a body `session_id` are rejected by the server. Missing usage stays
 null. Group sessions are unsupported.
 
-`Cards.Untranslated` takes required `locale`, optional `limit`
-(default 50, max 200), `offset`, and `include_partial`. Its `summary` covers
-only the returned page. Explicit false and offset=0 are preserved.
+`Sessions.CustomTask` posts `{pe, model}` plus optional `lang`, `temperature`,
+and `max_tokens`; it reads session history without changing the session.
+`Cards.Translate` invokes the server translation model and preserves existing
+translations. `Cards.Untranslated` also accepts `card_ids`, `locales`,
+`languages`, `fields`, `missing_only`, `q`, and `include_total`.
+
+World books are available through `Client.WorldBooks`; list/create/delete are
+project-scoped, while `CatalogList` and `CatalogGet` provide read-only access
+to the global catalog. Catalog writes and cross-project imports belong to the
+control plane and are intentionally outside the public SDK.
+
+`Cards.Untranslated` takes `locale`, optional `limit` (default 50, max 200),
+`offset`, and `include_partial`; batch/inventory mode additionally accepts
+card IDs, locales, languages, fields, `missing_only`, `q`, and `include_total`.
+Its `summary` covers only the returned page. Explicit false and offset=0 are preserved.
 `Cards.ForkTranslations` takes
 `{items: [{card_id, card_version, locales: [...]}]}`; inspect per-item `errors`
 and `action=created/skipped`. Existing edited translations are preserved.

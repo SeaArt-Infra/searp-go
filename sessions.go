@@ -97,6 +97,17 @@ func (s *SessionService) Inspiration(ctx context.Context, id string, body JSONMa
 	return &out, nil
 }
 
+// CustomTask runs a caller-supplied PE against the session's pinned character,
+// persona, language and history. It does not modify the session or create an
+// operation. The body must contain pe and model.
+func (s *SessionService) CustomTask(ctx context.Context, id string, body JSONMap, opts ...RequestOption) (JSONMap, error) {
+	var out JSONMap
+	if err := requestJSON(ctx, s.client, "POST", sessionPath(id)+"/custom-task", body, headersFromOptions(opts), &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Patch updates non-version session sampling or request settings.
 func (s *SessionService) Patch(ctx context.Context, id string, body JSONMap, opts ...RequestOption) (*SessionSnapshot, error) {
 	var out SessionSnapshot

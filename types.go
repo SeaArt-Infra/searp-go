@@ -126,31 +126,32 @@ type Branch struct {
 // SessionSnapshot is the JSON session body returned by create, get, and JSON
 // turn endpoints.
 type SessionSnapshot struct {
-	PromptRedacted   bool           `json:"prompt_redacted,omitempty"`
-	SystemTemplateID string         `json:"system_template_id"`
-	ID               string         `json:"id"`
-	ProjectID        string         `json:"project_id"`
-	UserID           string         `json:"user_id"`
-	Revision         uint64         `json:"revision"`
-	VersionID        string         `json:"version_id"`
-	PEDigest         string         `json:"pe_digest"`
-	CardID           string         `json:"card_id,omitempty"`
-	CardVersion      *uint64        `json:"card_version,omitempty"`
-	Request          Request        `json:"request"`
-	History          []Message      `json:"history"`
-	HistoryTotal     uint64         `json:"history_total"`
-	HistoryOffset    uint64         `json:"history_offset"`
-	Branches         []Branch       `json:"branches,omitempty"`
-	Pending          string         `json:"pending,omitempty"`
-	Prompt           Rendered       `json:"prompt"`
-	Messages         []Message      `json:"messages,omitempty"`
-	Greeting         string         `json:"greeting"`
-	MaxContext       uint64         `json:"max_context"`
-	PinnedMemory     string         `json:"pinned_memory,omitempty"`
-	PromptTokens     uint64         `json:"prompt_tokens"`
-	Recalled         int            `json:"recalled"`
-	Assignments      []Assignment   `json:"assignments,omitempty"`
-	Sample           *SessionSample `json:"sample,omitempty"`
+	PromptRedacted    bool           `json:"prompt_redacted,omitempty"`
+	SystemTemplateID  string         `json:"system_template_id"`
+	ID                string         `json:"id"`
+	ProjectID         string         `json:"project_id"`
+	UserID            string         `json:"user_id"`
+	Revision          uint64         `json:"revision"`
+	VersionID         string         `json:"version_id"`
+	PEDigest          string         `json:"pe_digest"`
+	CardID            string         `json:"card_id,omitempty"`
+	CardVersion       *uint64        `json:"card_version,omitempty"`
+	Request           Request        `json:"request"`
+	History           []Message      `json:"history"`
+	HistoryTotal      uint64         `json:"history_total"`
+	HistoryOffset     uint64         `json:"history_offset"`
+	HistoryTrimBefore uint64         `json:"history_trim_before,omitempty"`
+	Branches          []Branch       `json:"branches,omitempty"`
+	Pending           string         `json:"pending,omitempty"`
+	Prompt            Rendered       `json:"prompt"`
+	Messages          []Message      `json:"messages,omitempty"`
+	Greeting          string         `json:"greeting"`
+	MaxContext        uint64         `json:"max_context"`
+	PinnedMemory      string         `json:"pinned_memory,omitempty"`
+	PromptTokens      uint64         `json:"prompt_tokens"`
+	Recalled          int            `json:"recalled"`
+	Assignments       []Assignment   `json:"assignments,omitempty"`
+	Sample            *SessionSample `json:"sample,omitempty"`
 }
 
 // HistoryMessage is one absolute-indexed element from the session history list.
@@ -172,9 +173,17 @@ type AssembleResponse struct {
 // TurnResponse is the non-streaming response returned by POST /v1/sessions/{id}/turns.
 type TurnResponse struct {
 	SessionSnapshot
-	HistoryImport json.RawMessage  `json:"history_import,omitempty"`
-	Execution     AssembleResponse `json:"execution"`
-	Usage         *json.RawMessage `json:"usage"`
+	HistoryImport     json.RawMessage    `json:"history_import,omitempty"`
+	HistoryCompaction *HistoryCompaction `json:"history_compaction,omitempty"`
+	Execution         AssembleResponse   `json:"execution"`
+	Usage             *json.RawMessage   `json:"usage"`
+}
+
+// HistoryCompaction describes history removed by the turn that produced a response.
+type HistoryCompaction struct {
+	Dropped    uint64 `json:"dropped"`
+	Retained   uint64 `json:"retained"`
+	TrimBefore uint64 `json:"trim_before"`
 }
 
 // ProactiveResponse is the non-streaming response returned by
