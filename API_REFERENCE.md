@@ -1,6 +1,6 @@
 # SeaRP API reference
 
-Synced on 2026-11-05 against the SeaRP service at `87c36f3`:
+Synced on 2026-11-17 against the SeaRP service at `8c14e1f`:
 `docs/searp-api.md`, `docs/card-import-api.md` and the card creation migration
 guide. Paths below are relative to engine `/v1` unless marked Control API.
 Documentation/route differences are recorded below.
@@ -108,9 +108,11 @@ request options. Keep project credentials on the caller's server.
   call. It defaults to `persist: true`; continue with the returned
   `session_id` and `expected_revision`. Use `persist: false` with
   `card_info` and `history` for a stateless call. Debug chat accepts sampling,
-  memory and per-call prompt parameters; it does not accept a nested `request`.
+  memory and per-call prompt parameters; top-level `lang` overrides
+  `card_info.lang` for that call; it does not accept a nested `request`.
 - Turns take `action` (reply/additional/regenerate), `text` or `message`,
-  optional `expected_revision`, sampling, memory, `user`, `lang`,
+  optional `expected_revision`, sampling, memory, `user`, `lang`, and
+  per-call `style_prompt_override`,
   `system_prompt_override`, `lastest_system_prompt` (keep this spelling),
   `favorability_score` (-1..100), and `metadata.history`.
 - Proactive takes a required `idempotency_key`, optional `expected_revision`,
@@ -123,7 +125,8 @@ request options. Keep project credentials on the caller's server.
   max_context and pinned_memory under `memory`. Sampling options
   `top_p`, `thinking_mode`, `thinking_budget_tokens` and prompt parameters
   `lastest_system_prompt`, `favorability_score`, `lang` can also be top-level.
-  `system_prompt_override` belongs under `live`. Top-level non-null values
+  `system_prompt_override` and `style_prompt_override` belong under `live`.
+  Top-level non-null values
   override matching live values. Operations always return JSON.
 - `metadata.history` only seeds an empty session. The response's
   `history_import` records seeded/skipped status; leading assistant messages
@@ -133,7 +136,12 @@ request options. Keep project credentials on the caller's server.
   (1..1000000), `top_p` (0 < p <= 1), `thinking_mode` and
   `thinking_budget_tokens`. Thinking support depends on the selected model;
   Claude budgets require enabled thinking and 1024 <= budget < max_tokens.
-  Gemini 3 does not accept thinking_mode=false.
+  Gemini 3 accepts `thinking_mode=false` and folds it to the model's minimum
+  thinking strength; SeaInfra uses `reasoning_effort=minimal` for that case,
+  while OpenRouter keeps `reasoning.effort=low`.
+- JSON generation retries transient 408/429/5xx failures once on the same
+  model after 750ms; SSE never retries and the old cross-model fallback is
+  removed. `failed_attempts` records the earlier attempt when present.
 - `lang`, per-turn `user` and prompt instructions apply to that call only.
   Sampling and memory updates on non-version sessions are saved on success.
   Version sessions reject fixed configuration overrides; card sessions reject
@@ -191,7 +199,7 @@ token whitespace and handle SSE error events and disconnects; receiving HTTP
 Cinema requires a stable `Idempotency-Key` header. Round bodies take content,
 option_index (0 is valid), custom_input and expected_revision, plus optional
 model, temperature, max_tokens, top_p, max_context, pinned_memory,
-conversation_style, user, lang and image_model. Those overrides apply to the
+conversation_style, `style_prompt_override`, user, lang and image_model. Those overrides apply to the
 round. Cinema's outer SSE event name is `cinema`; parse data JSON and inspect
 its inner `event` (including message_end and error), rather than waiting for a
 chat-style done event. Event IDs are exposed by the SDK. Events are live
@@ -308,8 +316,9 @@ inference requires prompt-inspection permission.
 Use `GroupSessions` to create a session with `group_id`, optional `group_version`,
 `user_id`, `user`, `mode`, `output_format`, `active_participant_ids`,
 `max_context`, `pinned_memory`. Sessions pin both story and member versions.
-Group turns take `content`, optional `action`, `expected_revision`,
-`addressed_participant_ids` and per-call sampling/prompt overrides. Supply a
+Group turns take optional plain-text `content` or OpenAI `message` content parts
+(mutually exclusive), optional `action`, `expected_revision`,
+`addressed_participant_ids`, `style_prompt_override` and per-call sampling/prompt overrides. Supply a
 stable `Idempotency-Key` request header for safe retries; without it, resending
 can generate another paid turn. JSON responses flatten the session snapshot
 and add `execution`, nullable `usage`, `operation` and `turn` (segments,

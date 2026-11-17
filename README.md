@@ -66,9 +66,9 @@ multimodal input, per-turn parameters, and migration notes.
 
 ## Release API update
 
-Aligned with SeaRP release API docs `af4e254` on 2026-10-23. The SDK now
-covers group story cards and sessions, player inspiration suggestions, missing
-translation queries, translation reuse, catalog fork and Cinema order.
+Aligned with SeaRP release API docs `8c14e1f` on 2026-11-17. The SDK now
+documents per-call style prompt overrides, group multimodal messages, debug
+language overrides, and the current retry/thinking behavior.
 
 ```go
 suggestions, err := client.Sessions.Inspiration(ctx, session.ID, rp.JSONMap{"lang": "zh"})
@@ -331,17 +331,24 @@ For streaming, use `client.Sessions.TurnStream` and stop on `done`.
 Catch `*rp.Error` and branch on `Kind`. `rp.ErrConflict` usually means a stale
 `expected_revision` or an idempotency key reused with different input.
 
-## Release API additions (2026-10-23)
+## Release API additions (2026-11-17)
 
 Use `client.GroupCards` for story cards, immutable versions, members,
 imports, preview and translations. Use `client.GroupSessions` for creating group
 sessions, generating JSON/SSE turns, querying turn records and prompts.
 Member removals require a JSON body with `user_id` and
-`expected_latest_version`. Group generation takes `content` and supports a
+`expected_latest_version`. Group generation accepts either plain-text
+`content` or OpenAI `message` content parts, plus per-call
+`style_prompt_override`, and supports a
 stable `Idempotency-Key` header; preserve the key and original input on retry.
 JSON responses include the flattened session revision and group `turn.segments`.
 The shared SSE parser also exposes `segment_*` and `parser_warning` events.
 Read history through the ordinary session get method.
+
+Turns and Cinema rounds also accept `style_prompt_override` for a one-call
+style replacement. Debug chat accepts top-level `lang` to override the card
+language for that call. JSON generation retries transient 408/429/5xx failures
+once on the same model; SSE does not retry, and cross-model fallback is removed.
 
 `client.Sessions.Inspiration` returns positive/neutral player reply
 suggestions. It accepts an empty body or per-call language and sampling,

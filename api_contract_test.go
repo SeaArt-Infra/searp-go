@@ -72,9 +72,24 @@ func TestMultimodalHistoryAndLatestResponseFields(t *testing.T) {
 			_, _ = w.Write([]byte(`{"index":0,"total":2,"role":"user","content":[{"type":"image_url","image_url":{"url":"https://cdn.example/a.png"}}]}`))
 			return
 		}
+		var body JSONMap
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			t.Fatal(err)
+		}
+		if body["style_prompt_override"] != "Speak tersely." {
+			t.Fatalf("style override was not forwarded: %v", body)
+		}
 		_, _ = w.Write([]byte(`{"id":"s1","history":[{"role":"assistant","content":"hello"},{"role":"user","content":[{"type":"text","text":"what?"},{"type":"image_url","image_url":{"url":"https://cdn.example/a.png","detail":"auto"}}]}],"prompt_redacted":true,"execution":{"prompt":{"user":"Visitor","warnings":["fallback"]},"messages":[],"prompt_tokens":100,"prompt_redacted":true},"history_import":{"seeded":{"messages":2,"dropped":1}}}`))
 	})
-	out, err := client.Sessions.Turn(context.Background(), "s1", JSONMap{"action": "reply", "message": []ContentPart{{Type: "image_url", ImageURL: &ImageURL{URL: "https://cdn.example/a.png"}}}})
+	body := JSONMap{
+		"action": "reply",
+		"message": []ContentPart{{
+			Type:     "image_url",
+			ImageURL: &ImageURL{URL: "https://cdn.example/a.png"},
+		}},
+		"style_prompt_override": "Speak tersely.",
+	}
+	out, err := client.Sessions.Turn(context.Background(), "s1", body)
 	if err != nil {
 		t.Fatal(err)
 	}
