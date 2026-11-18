@@ -61,11 +61,12 @@ Use `Engine.DebugChat` for temporary card/sampling configurations;
 `request` and sampling fields are rejected by `Sessions.Create`.
 `Sessions.CreateExperience` opens the currently published experience version.
 
-See [SeaRP API reference](https://github.com/SeaArt-Infra/searp-go/blob/main/API_REFERENCE.md) for all routes, pagination, translations,
+See the [SeaRP API reference](https://seainfra.dev/docs/searp-api) for all routes, pagination, translations,
 multimodal input, per-turn parameters, and migration notes.
 
 This reference covers the SeaRP engine `/v1` API. The website Agent contract
 at `/admin/v1/agent/contract` is a separate interface and is not part of this SDK.
+For language-specific client methods, see the [Go SDK API mapping](https://github.com/SeaArt-Infra/searp-go/blob/main/API_REFERENCE.md).
 
 ## Release API update
 
@@ -105,7 +106,7 @@ Inspiration changes no history and calls the model again on each retry.
 The role-card creation example below remains for existing integrations.
 For catalog cards, configure `ControlAPIBaseURL` and call
 `client.Cards.Fork` with a project ID and `catalog_ids`; inspect
-both `items` and `errors`. See the [SeaRP API reference](https://github.com/SeaArt-Infra/searp-go/blob/main/API_REFERENCE.md) for route
+both `items` and `errors`. See the [SeaRP API reference](https://seainfra.dev/docs/searp-api) for route
 coverage, import-document differences, group request fields and recovery.
 
 ## Services
